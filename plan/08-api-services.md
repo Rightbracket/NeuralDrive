@@ -83,17 +83,44 @@ The native Ollama API is exposed via `/api/` on port `8443` for administrative t
 
 ## Section 4: NeuralDrive Management API
 
-A custom FastAPI service (`neuraldrive-api`) manages system-level tasks.
+A custom FastAPI service (`neuraldrive-system-api`) manages system-level tasks. This is the canonical API definition — 07-web-interface.md §6 references this section.
 
-### 4.1 FastAPI Implementation Skeleton
+### 4.1 systemd Service: `neuraldrive-system-api.service`
+```ini
+[Unit]
+Description=NeuralDrive System Management API
+After=network.target
+
+[Service]
+User=neuraldrive-api
+Group=neuraldrive-api
+EnvironmentFile=/etc/neuraldrive/api.env
+ExecStart=/usr/lib/neuraldrive/api/venv/bin/uvicorn neuraldrive_api.main:app --host 127.0.0.1 --port 3001
+Restart=always
+RestartSec=5
+WorkingDirectory=/usr/lib/neuraldrive/api
+
+# Hardening
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true
+ReadWritePaths=/etc/neuraldrive /var/log/neuraldrive /var/lib/neuraldrive
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 4.2 Authentication
 ```python
 from fastapi import FastAPI, Depends, HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import subprocess
 import psutil
 import shutil
+import json
 
-app = FastAPI(title="NeuralDrive System API")
+app = FastAPI(title="NeuralDrive System API", version="1.0.0")
 auth_scheme = HTTPBearer()
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Security(auth_scheme)):
@@ -102,31 +129,198 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(auth_schem
     if credentials.credentials != valid_key:
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return credentials.credentials
+```
 
+### 4.3 Endpoint Reference
+
+All endpoints require `Authorization: Bearer <API_KEY>` via the `verify_token` dependency.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/system/status` | System overview (CPU, RAM, disk, uptime) |
+| GET | `/system/logs` | Service log tailing |
+| GET | `/system/services` | List all neuraldrive-* services and their status |
+| POST | `/system/services/{name}/restart` | Restart a neuraldrive-* service |
+| POST | `/system/services/{name}/{action}` | Start/stop a neuraldrive-* service |
+| GET | `/system/storage` | Disk usage breakdown (models, configs, logs) |
+| GET | `/system/network` | Network interfaces, IP, mDNS status |
+| POST | `/system/network/hostname` | Set hostname |
+| GET | `/system/gpu` | GPU info, VRAM usage, temperature |
+| POST | `/system/ssh/{action}` | Enable/disable SSH |
+| GET | `/system/security` | Firewall status, TLS cert info, SSH status |
+| POST | `/system/api-keys/rotate` | Rotate the API key |
+| GET | `/system/ca-cert` | Download the CA certificate for client trust |
+
+### 4.4 Implementation Skeleton
+```python
+# --- System Status ---
 @app.get("/system/status", dependencies=[Depends(verify_token)])
 def get_system_status():
     return {
-        "hostname": "neuraldrive",
+        "hostname": subprocess.check_output(["hostname"]).decode().strip(),
         "cpu_percent": psutil.cpu_percent(),
-        "memory_percent": psutil.virtual_memory().percent,
-        "disk_usage": shutil.disk_usage("/var/lib/neuraldrive/models")
+        "memory": {
+            "total_gb": round(psutil.virtual_memory().total / (1024**3), 1),
+            "used_percent": psutil.virtual_memory().percent,
+        },
+        "disk": {
+            "models": shutil.disk_usage("/var/lib/neuraldrive/models")._asdict(),
+            "total": shutil.disk_usage("/var/lib/neuraldrive")._asdict(),
+        },
+        "uptime_seconds": int(psutil.boot_time()),
+        "version": open("/etc/neuraldrive/version").read().strip() if os.path.exists("/etc/neuraldrive/version") else "dev",
     }
 
-@app.get("/system/logs", dependencies=[Depends(verify_token)])
-def get_logs(service: str = "ollama"):
-    # Limit to neuraldrive-* services
-    if not service.startswith("neuraldrive-"):
-         service = f"neuraldrive-{service}"
-    res = subprocess.run(["journalctl", "-u", service, "-n", "50", "--no-pager"], capture_output=True, text=True)
-    return {"logs": res.stdout}
+# --- Service Management ---
+ALLOWED_SERVICES = [
+    "neuraldrive-ollama", "neuraldrive-webui", "neuraldrive-caddy",
+    "neuraldrive-gpu-monitor", "neuraldrive-system-api", "neuraldrive-certs",
+]
 
+@app.get("/system/services", dependencies=[Depends(verify_token)])
+def list_services():
+    results = []
+    for svc in ALLOWED_SERVICES:
+        status = subprocess.run(
+            ["systemctl", "is-active", svc], capture_output=True, text=True
+        )
+        results.append({"name": svc, "status": status.stdout.strip()})
+    return {"services": results}
+
+@app.post("/system/services/{name}/restart", dependencies=[Depends(verify_token)])
+def restart_service(name: str):
+    if name not in ALLOWED_SERVICES:
+        raise HTTPException(status_code=403, detail=f"Service '{name}' not in allowlist")
+    subprocess.run(["systemctl", "restart", name], check=True)
+    return {"message": f"Restarted {name}"}
+
+@app.post("/system/services/{name}/{action}", dependencies=[Depends(verify_token)])
+def service_action(name: str, action: str):
+    if name not in ALLOWED_SERVICES:
+        raise HTTPException(status_code=403, detail=f"Service '{name}' not in allowlist")
+    if action not in ("start", "stop"):
+        raise HTTPException(status_code=400, detail="Action must be 'start' or 'stop'")
+    subprocess.run(["systemctl", action, name], check=True)
+    return {"message": f"{action.capitalize()}ed {name}"}
+
+# --- Logs ---
+@app.get("/system/logs", dependencies=[Depends(verify_token)])
+def get_logs(service: str = "ollama", lines: int = 50):
+    if not service.startswith("neuraldrive-"):
+        service = f"neuraldrive-{service}"
+    if service not in ALLOWED_SERVICES:
+        raise HTTPException(status_code=403, detail="Service not in allowlist")
+    res = subprocess.run(
+        ["journalctl", "-u", service, "-n", str(min(lines, 500)), "--no-pager"],
+        capture_output=True, text=True,
+    )
+    return {"service": service, "lines": res.stdout.splitlines()}
+
+# --- Storage ---
+@app.get("/system/storage", dependencies=[Depends(verify_token)])
+def get_storage():
+    models_usage = shutil.disk_usage("/var/lib/neuraldrive/models")
+    return {
+        "models": {
+            "total_gb": round(models_usage.total / (1024**3), 1),
+            "used_gb": round(models_usage.used / (1024**3), 1),
+            "free_gb": round(models_usage.free / (1024**3), 1),
+            "percent": round(models_usage.used / models_usage.total * 100, 1),
+        },
+        "persistence": shutil.disk_usage("/var/lib/neuraldrive")._asdict(),
+    }
+
+# --- Network ---
+@app.get("/system/network", dependencies=[Depends(verify_token)])
+def get_network():
+    interfaces = psutil.net_if_addrs()
+    result = {}
+    for iface, addrs in interfaces.items():
+        for addr in addrs:
+            if addr.family.name == "AF_INET":
+                result[iface] = {"ip": addr.address, "netmask": addr.netmask}
+    return {
+        "interfaces": result,
+        "hostname": subprocess.check_output(["hostname"]).decode().strip(),
+        "mdns": "neuraldrive.local",
+    }
+
+@app.post("/system/network/hostname", dependencies=[Depends(verify_token)])
+def set_hostname(hostname: str):
+    subprocess.run(["hostnamectl", "set-hostname", hostname], check=True)
+    return {"message": f"Hostname set to {hostname}"}
+
+# --- GPU ---
+@app.get("/system/gpu", dependencies=[Depends(verify_token)])
+def get_gpu():
+    gpu_conf = "/run/neuraldrive/gpu.conf"
+    info = {"vendor": "unknown", "devices": []}
+    if os.path.exists(gpu_conf):
+        with open(gpu_conf) as f:
+            for line in f:
+                if line.startswith("VENDOR="):
+                    info["vendor"] = line.strip().split("=")[1]
+    # NVIDIA details via nvidia-smi
+    if info["vendor"] == "NVIDIA":
+        try:
+            res = subprocess.run(
+                ["nvidia-smi", "--query-gpu=name,memory.total,memory.used,temperature.gpu",
+                 "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, check=True,
+            )
+            for line in res.stdout.strip().splitlines():
+                parts = [p.strip() for p in line.split(",")]
+                info["devices"].append({
+                    "name": parts[0], "vram_total_mb": int(parts[1]),
+                    "vram_used_mb": int(parts[2]), "temp_c": int(parts[3]),
+                })
+        except Exception:
+            pass
+    return info
+
+# --- SSH ---
 @app.post("/system/ssh/{action}", dependencies=[Depends(verify_token)])
 def manage_ssh(action: str):
-    if action not in ["enable", "disable"]:
-        raise HTTPException(status_code=400, detail="Invalid action")
+    if action not in ("enable", "disable"):
+        raise HTTPException(status_code=400, detail="Action must be 'enable' or 'disable'")
     cmd = "start" if action == "enable" else "stop"
-    subprocess.run(["systemctl", cmd, "ssh"])
+    subprocess.run(["systemctl", cmd, "ssh"], check=True)
     return {"message": f"SSH {action}d"}
+
+# --- Security ---
+@app.get("/system/security", dependencies=[Depends(verify_token)])
+def get_security():
+    ssh_active = subprocess.run(
+        ["systemctl", "is-active", "ssh"], capture_output=True, text=True
+    ).stdout.strip() == "active"
+    cert_exists = os.path.exists("/etc/neuraldrive/tls/server.crt")
+    return {
+        "ssh_enabled": ssh_active,
+        "tls_configured": cert_exists,
+        "firewall": "nftables",
+    }
+
+# --- API Key Rotation ---
+@app.post("/system/api-keys/rotate", dependencies=[Depends(verify_token)])
+def rotate_api_key():
+    import secrets
+    new_key = f"nd-{secrets.token_hex(16)}"
+    with open("/etc/neuraldrive/api.key", "w") as f:
+        f.write(new_key)
+    # Update Caddy env and reload
+    with open("/etc/neuraldrive/caddy.env", "w") as f:
+        f.write(f"NEURALDRIVE_API_KEY={new_key}\n")
+    subprocess.run(["systemctl", "reload", "neuraldrive-caddy"])
+    return {"message": "API key rotated", "new_key": new_key}
+
+# --- CA Certificate Download ---
+@app.get("/system/ca-cert")
+def download_ca_cert():
+    from fastapi.responses import FileResponse
+    cert_path = "/etc/neuraldrive/tls/neuraldrive-ca.crt"
+    if not os.path.exists(cert_path):
+        raise HTTPException(status_code=404, detail="CA certificate not found")
+    return FileResponse(cert_path, media_type="application/x-pem-file", filename="neuraldrive-ca.crt")
 ```
 
 ## Section 5: Network Configuration & Service Discovery

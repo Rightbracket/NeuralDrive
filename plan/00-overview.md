@@ -160,6 +160,10 @@ This plan is organized as a sequence of implementation documents. Each covers a 
 | `05-security.md` | Hardening, firewall, TLS, authentication | 01 | 2 |
 | `06-local-interface.md` | TUI application | 03 | 3 |
 | `07-web-interface.md` | Open WebUI, GPU Hot, Caddy | 03, 05 | 3 |
+| `07a-web-design-system.md` | Visual design system, theming | 07 | 3 |
+| `07b-web-site-architecture.md` | Sitemap, navigation, layout | 07 | 3 |
+| `07c-web-page-designs.md` | ASCII wireframes for all pages | 07 | 3 |
+| `07d-web-interactions.md` | User flows, error states, accessibility | 07 | 3 |
 | `08-api-services.md` | API layer, networking, remote access | 03, 05 | 3 |
 | `09-image-toolkit.md` | Custom image builder for users | 01-08 | 4 |
 | `10-testing-deployment.md` | Testing, QA, deployment, documentation | 01-09 | 4 |

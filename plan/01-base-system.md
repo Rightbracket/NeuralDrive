@@ -129,6 +129,7 @@ useradd -r -s /usr/sbin/nologin -u 901 neuraldrive-ollama
 useradd -r -s /usr/sbin/nologin -u 902 neuraldrive-webui
 useradd -r -s /usr/sbin/nologin -u 903 neuraldrive-caddy
 useradd -r -s /usr/sbin/nologin -u 904 neuraldrive-monitor
+useradd -r -s /usr/sbin/nologin -u 905 neuraldrive-api
 
 # Create admin user for TUI access
 useradd -m -s /bin/bash -G sudo,video,render neuraldrive-admin
@@ -143,6 +144,13 @@ mkdir -p /etc/neuraldrive /var/lib/neuraldrive/models /var/log/neuraldrive /usr/
 # Enable NeuralDrive services
 systemctl enable neuraldrive-setup.service
 systemctl enable neuraldrive-gpu-detect.service
+systemctl enable neuraldrive-certs.service
+systemctl enable neuraldrive-ollama.service
+systemctl enable neuraldrive-webui.service
+systemctl enable neuraldrive-caddy.service
+systemctl enable neuraldrive-gpu-monitor.service
+systemctl enable neuraldrive-system-api.service
+systemctl enable neuraldrive-zram.service
 systemctl enable nftables.service
 systemctl enable avahi-daemon.service
 ```
@@ -198,6 +206,77 @@ curl -fsSL https://ollama.com/download/ollama-linux-amd64 -o /usr/local/bin/olla
 chmod +x /usr/local/bin/ollama
 ```
 
+Create `config/hooks/live/04-install-python-apps.chroot` — install all Python components into isolated venvs:
+```bash
+#!/bin/sh
+set -e
+
+# --- Open WebUI ---
+python3 -m venv /usr/lib/neuraldrive/webui/venv
+/usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir --upgrade pip
+/usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir open-webui
+mkdir -p /var/lib/neuraldrive/webui
+
+# --- GPU Monitoring Dashboard ---
+python3 -m venv /usr/lib/neuraldrive/gpu-monitor/venv
+/usr/lib/neuraldrive/gpu-monitor/venv/bin/pip install --no-cache-dir --upgrade pip
+/usr/lib/neuraldrive/gpu-monitor/venv/bin/pip install --no-cache-dir gpu-hot
+
+# --- TUI ---
+python3 -m venv /usr/lib/neuraldrive/tui/venv
+/usr/lib/neuraldrive/tui/venv/bin/pip install --no-cache-dir --upgrade pip
+/usr/lib/neuraldrive/tui/venv/bin/pip install --no-cache-dir textual psutil httpx rich
+
+# Create TUI launcher script
+cat > /usr/local/bin/neuraldrive-tui << 'LAUNCHER'
+#!/bin/sh
+exec /usr/lib/neuraldrive/tui/venv/bin/python /usr/lib/neuraldrive/tui/main.py
+LAUNCHER
+chmod +x /usr/local/bin/neuraldrive-tui
+
+# --- System Management API ---
+python3 -m venv /usr/lib/neuraldrive/api/venv
+/usr/lib/neuraldrive/api/venv/bin/pip install --no-cache-dir --upgrade pip
+/usr/lib/neuraldrive/api/venv/bin/pip install --no-cache-dir fastapi uvicorn psutil httpx
+
+echo "All Python components installed."
+```
+
+Create `config/hooks/live/05-generate-configs.chroot` — generate default config file templates:
+```bash
+#!/bin/sh
+set -e
+
+mkdir -p /etc/neuraldrive/tls
+
+# --- Ollama configuration ---
+cat > /etc/neuraldrive/ollama.conf << 'EOF'
+# NeuralDrive Ollama Configuration
+OLLAMA_HOST=127.0.0.1:11434
+OLLAMA_MODELS=/var/lib/neuraldrive/models/
+OLLAMA_KEEP_ALIVE=5m
+OLLAMA_MAX_LOADED_MODELS=1
+OLLAMA_NUM_PARALLEL=1
+EOF
+
+# --- Open WebUI environment ---
+cat > /etc/neuraldrive/webui.env << 'EOF'
+OLLAMA_BASE_URL=http://localhost:11434
+DATA_DIR=/var/lib/neuraldrive/webui
+ENABLE_SIGNUP=false
+DEFAULT_USER_ROLE=user
+WEBUI_AUTH=true
+WEBUI_NAME=NeuralDrive
+# WEBUI_SECRET_KEY is generated during first-boot
+EOF
+
+# --- Caddyfile (see 07-web-interface.md §4 for full configuration) ---
+# The Caddyfile is placed via config/includes.chroot and referenced here for completeness.
+# Path: /etc/neuraldrive/Caddyfile
+
+echo "Default configuration files generated."
+```
+
 ---
 
 ## Section 3: Kernel Configuration
@@ -224,7 +303,7 @@ Default boot options in `config/bootloaders/grub-pc/grub.cfg`:
 Configured in `config/includes.binary/boot/grub/grub.cfg`:
 ```text
 menuentry "NeuralDrive (Normal)" {
-    linux /live/vmlinuz boot=live components quiet splash nvidia-drm.modeset=1 findiso
+    linux /live/vmlinuz boot=live components persistence quiet splash nvidia-drm.modeset=1
     initrd /live/initrd.img
 }
 

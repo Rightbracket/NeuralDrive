@@ -139,7 +139,9 @@ Large models are handled via a SquashFS overlay to keep the primary system image
 1.  **Download**: During build, models are pulled into a staging area.
 2.  **Compression**: Models are packed into `models.squashfs`.
 3.  **Boot Mounting**: At runtime, `neuraldrive-init` detects `models.squashfs` and mounts it to `/var/lib/neuraldrive/models/`.
-4.  **First Boot**: On USB media, the initialization script offers to copy pre-loaded models to the `NDATA` persistent partition (`/var/lib/neuraldrive/models/`) to improve performance and allow for updates.
+4.  **First Boot**: On USB media, the initialization script offers to copy pre-loaded models to the persistent partition (`/var/lib/neuraldrive/models/`) to improve performance and allow for updates.
+
+See `03-llm-runtime.md §3` for the full two-phase model seeding workflow.
 
 ## 6. USB Image Writing
 The output ISO is an `isohybrid` image.
@@ -147,7 +149,7 @@ The output ISO is an `isohybrid` image.
 - **Command Line**: `sudo dd if=neuraldrive.iso of=/dev/sdX bs=4M status=progress && sync`
 - **GUI Tools**: Fully compatible with Balena Etcher, Rufus (DD mode), and Raspberry Pi Imager.
 - **Ventoy**: Native support for ISO booting.
-- **Partitioning**: On first boot, the system detects the free space on the USB drive, creates an `NDATA` partition, and configures `overlayfs` for persistence.
+- **Persistence Setup**: After writing the ISO, create a persistence partition in the remaining USB space using the `prepare-usb.sh` helper script (see 04-storage-persistence.md §8). The NeuralDrive toolkit provides a `neuraldrive-flash` command that automates both the `dd` and persistence partition creation steps.
 
 ## 7. Advanced Customization
 

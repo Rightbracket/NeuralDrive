@@ -7,23 +7,9 @@ This document defines the architecture and implementation of the NeuralDrive TUI
 - **Application**: `neuraldrive-tui`
 - **Location**: `/usr/local/bin/neuraldrive-tui` (system-wide script pointing to `/usr/lib/neuraldrive/tui/main.py`)
 - **Isolation**: Runs in a dedicated Python virtualenv at `/usr/lib/neuraldrive/tui/venv/`.
-- **System Service**: `neuraldrive-tui.service`
-```ini
-[Unit]
-Description=NeuralDrive Console TUI
-After=network-online.target neuraldrive-ollama.service
+- **Startup Method**: Auto-launched via `.profile` when `neuraldrive-admin` logs in on `tty1` (see `01-base-system.md`, hook `02-setup-autologin.chroot`). The TUI is an interactive terminal application, not a background service — it does **not** use a systemd unit.
 
-[Service]
-ExecStart=/usr/local/bin/neuraldrive-tui
-StandardInput=tty
-StandardOutput=tty
-TTYPath=/dev/tty1
-Restart=always
-User=neuraldrive-admin
-
-[Install]
-WantedBy=multi-user.target
-```
+**Note on headless first-boot (M3)**: NeuralDrive requires a local keyboard and monitor for the first-boot setup wizard. There is no remote or web-based first-boot path. This is an explicit design constraint: the first-boot wizard sets the admin password and API key, which must happen locally for security reasons. After first-boot completes, the system can be managed entirely via the web interface or API.
 
 ## Section 2: Screen Layout & Mockups
 
@@ -127,15 +113,34 @@ if __name__ == "__main__":
 ```
 
 ## Section 6: First-Boot Wizard
+
+### Sentinel Files (S1)
+NeuralDrive uses two separate sentinel files for different concerns:
+- **`/etc/neuraldrive/initialized`** — Created by `neuraldrive-setup.service` (01-base-system.md §5). Marks that system-level initialization is complete (SSH keys generated, hostname set). This runs silently on every first boot.
+- **`/etc/neuraldrive/first-boot-complete`** — Created by the TUI wizard below. Marks that the user has completed interactive setup (password, network, storage). Until this file exists, the TUI launches in "Wizard Mode."
+
+Both files live on the persistence partition and survive reboots.
+
+### Wizard Trigger
 If `/etc/neuraldrive/first-boot-complete` does not exist, the TUI launches in "Wizard Mode".
 
 ### Wizard Steps:
-1. **Welcome**: Hardware summary and health check.
-2. **Security**: Prompt for admin password and generate API keys.
-3. **Network**: Configure DHCP or Static IP.
-4. **Storage**: Select persistence drive and optional LUKS encryption.
-5. **Models**: Recommended starter model selector.
-6. **Finish**: Writes configurations and touches the `first-boot-complete` file.
+1. **Welcome**: Hardware summary and health check (GPU detected, RAM, storage).
+2. **Security**: Generate random admin password and API key. Display them on screen. Prompt user to set a custom admin password.
+3. **Wi-Fi** (if applicable): If no wired connection is detected, present a Wi-Fi SSID selector using `nmcli device wifi list` and prompt for the Wi-Fi password. Uses `nmcli device wifi connect <SSID> password <PASS>`.
+4. **Network**: Configure DHCP (default) or Static IP via NetworkManager.
+5. **Storage**: Select persistence drive and optional LUKS encryption. **Warning**: "Enabling encryption will format the data partition. This cannot be undone."
+6. **Models**: Recommended starter model selector based on detected hardware (GPU VRAM, system RAM).
+7. **Finish**: Writes configurations, applies settings, and completes:
+   - Writes credentials to `/etc/neuraldrive/credentials.conf` (mode 600).
+   - Provisions the Open WebUI admin account via environment variables.
+   - **Removes passwordless sudo**: Replaces the NOPASSWD sudoers entry with a password-required one:
+     ```bash
+     echo "neuraldrive-admin ALL=(ALL) ALL" > /etc/sudoers.d/neuraldrive-admin
+     chmod 440 /etc/sudoers.d/neuraldrive-admin
+     ```
+   - Touches `/etc/neuraldrive/first-boot-complete`.
+   - Displays: "Setup complete! Dashboard: https://<IP>/ — API Key: nd-xxxxx"
 
 ## Section 7: Implementation Requirements
 - **Venv setup**: `python3 -m venv /usr/lib/neuraldrive/tui/venv/ && ./venv/bin/pip install textual psutil httpx rich`.

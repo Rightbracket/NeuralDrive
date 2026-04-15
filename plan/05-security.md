@@ -38,8 +38,8 @@ table inet filter {
         # TCP 22 — SSH (With Rate Limiting)
         tcp dport 22 ct state new limit rate 3/minute burst 5 packets accept
 
-        # UDP 5353 — mDNS/Avahi (Local Network Discovery)
-        udp dport 5353 accept
+        # UDP 5353 — mDNS/Avahi (Local Network Discovery, rate-limited)
+        udp dport 5353 limit rate 10/second accept
     }
 
     chain forward {
@@ -64,6 +64,7 @@ Services are decoupled into dedicated system users and hardened using systemd di
 - `neuraldrive-webui` (uid 902)
 - `neuraldrive-caddy` (uid 903)
 - `neuraldrive-monitor` (uid 904)
+- `neuraldrive-api` (uid 905) — System Management API
 
 ### systemd Hardening Template
 Every `neuraldrive-*` service unit must include these directives:
@@ -118,6 +119,32 @@ echo "Certificate generated. SAN: ${SAN}"
 echo "Client CA cert: ${CERT_DIR}/neuraldrive-ca.crt"
 ```
 
+### systemd Service: `neuraldrive-certs.service`
+This oneshot service runs before Caddy starts, generating certificates only if they don't already exist. Certificates are persisted across reboots (stored under `/etc/neuraldrive/tls/` which is on the persistence partition).
+
+```ini
+[Unit]
+Description=NeuralDrive TLS Certificate Generation
+After=local-fs.target network-online.target
+Wants=network-online.target
+Before=neuraldrive-caddy.service
+
+[Service]
+Type=oneshot
+ExecCondition=/bin/sh -c '! test -f /etc/neuraldrive/tls/server.crt'
+ExecStart=/usr/lib/neuraldrive/generate-certs.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Notes**:
+- `ExecCondition` skips certificate generation if certs already exist (idempotent).
+- `After=network-online.target` ensures the IP address is available for SAN inclusion.
+- Caddy declares `Requires=neuraldrive-certs.service` and `After=neuraldrive-certs.service` to ensure certs exist before it starts.
+- To regenerate certificates (e.g., after IP change), delete the cert files and restart: `sudo rm /etc/neuraldrive/tls/server.* && sudo systemctl restart neuraldrive-certs neuraldrive-caddy`.
+
 ### Caddyfile TLS
 ```caddyfile
 # /etc/neuraldrive/Caddyfile
@@ -169,7 +196,7 @@ findtime = 600
 ```
 
 ## Section 7: Data Protection
-- **Encryption**: If enabled at boot, the USB `NDATA` partition is formatted as a LUKS2 volume. The passphrase is requested on the TUI at every boot.
+- **Encryption**: If enabled at boot, the USB persistence partition is formatted as a LUKS2 volume. The passphrase is requested on the TUI at every boot.
 - **Permissions**:
   - Models: `neuraldrive-ollama:neuraldrive-ollama` (640)
   - Configs: `root:neuraldrive-admin` (640)

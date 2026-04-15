@@ -5,10 +5,10 @@ This document outlines the implementation for the core LLM serving software and 
 ## Section 1: Ollama Installation & Configuration
 
 ### Installation Method
-NeuralDrive uses the official Ollama `.deb` package to ensure clean inclusion during the `live-build` process and better dependency management than the standalone binary.
+NeuralDrive downloads the standalone Ollama binary during the `live-build` chroot phase (see `01-base-system.md`, hook `03-install-extras.chroot`). There is no official `.deb` package in Debian repositories; the binary is fetched directly from Ollama's release server.
 
-- **Source**: [https://ollama.com/download/linux](https://ollama.com/download/linux)
-- **Binary Location**: `/usr/bin/ollama`
+- **Source**: [https://ollama.com/download/ollama-linux-amd64](https://ollama.com/download/ollama-linux-amd64)
+- **Binary Location**: `/usr/local/bin/ollama`
 - **Data Directory**: `/var/lib/neuraldrive/models/`
 
 ### Systemd Service: `neuraldrive-ollama.service`
@@ -23,7 +23,7 @@ Requires=neuraldrive-gpu-detect.service
 [Service]
 EnvironmentFile=/etc/neuraldrive/ollama.conf
 ExecStartPre=/usr/bin/mkdir -p /var/lib/neuraldrive/models
-ExecStart=/usr/bin/ollama serve
+ExecStart=/usr/local/bin/ollama serve
 User=neuraldrive-ollama
 Group=neuraldrive-ollama
 Restart=always
@@ -44,7 +44,7 @@ This file contains environment overrides read by the systemd unit.
 
 ```bash
 # NeuralDrive Ollama Configuration
-OLLAMA_HOST=0.0.0.0:11434
+OLLAMA_HOST=127.0.0.1:11434
 OLLAMA_MODELS=/var/lib/neuraldrive/models/
 OLLAMA_KEEP_ALIVE=5m
 OLLAMA_MAX_LOADED_MODELS=1
@@ -79,8 +79,44 @@ For advanced users requiring direct GGUF loading or specific quantization contro
 
 ## Section 3: Model Management
 
-### Pre-loaded Models
-Models are included in the SquashFS image by running `ollama pull` during the `chroot` phase of `live-build`. These models are stored in `/usr/share/neuraldrive/models/` and symlinked to `/var/lib/neuraldrive/models/` if the persistent partition is empty.
+### Pre-loaded Models (Two-Phase Build Approach)
+Models are NOT pulled during the `live-build` chroot phase, because running Ollama as a server inside a chroot is fragile and unnecessary. Instead, model pre-loading uses a two-phase approach:
+
+**Phase 1** — Build the base ISO without models (via `lb build`).
+
+**Phase 2** — Seed models in a separate step on a matching Linux environment:
+```bash
+#!/bin/bash
+# scripts/seed-models.sh — Run OUTSIDE of live-build, on a Linux host
+set -e
+
+STAGING_DIR="./model-staging"
+export OLLAMA_MODELS="$STAGING_DIR"
+mkdir -p "$STAGING_DIR"
+
+# Start Ollama temporarily (no GPU needed for pull)
+ollama serve &
+OLLAMA_PID=$!
+sleep 3
+
+# Pull models from catalog
+ollama pull qwen2.5:3b
+ollama pull llama3.1:8b
+# Add more models as needed from neuraldrive-models.yaml
+
+# Stop Ollama
+kill $OLLAMA_PID
+wait $OLLAMA_PID 2>/dev/null || true
+
+echo "Models staged in $STAGING_DIR"
+echo "Pack into models.squashfs or copy into includes.chroot for next build."
+```
+
+The staged `models/blobs/` and `models/manifests/` directories are then either:
+- Packed into `models.squashfs` (for the SquashFS overlay approach, see 09-image-toolkit.md §5), or
+- Copied into `config/includes.chroot/usr/share/neuraldrive/models/` for baking into the image directly.
+
+At runtime, if the persistence partition has no models, the pre-loaded models from `/usr/share/neuraldrive/models/` are symlinked into `/var/lib/neuraldrive/models/`.
 
 ### Model Catalog: `neuraldrive-models.yaml`
 A curated list of recommended models.

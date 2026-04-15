@@ -46,6 +46,16 @@ sudo apt update
 sudo apt install -y rocm-hip-runtime rocm-opencl-runtime rocm-smi
 ```
 
+### live-build Archive Sources (S7)
+The ROCm repository must be configured as a live-build archive source, not just a runtime apt source. Create these files during build setup:
+
+**`config/archives/rocm.list.chroot`**:
+```text
+deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/6.0.2 bookworm main
+```
+
+**`config/archives/rocm.key.chroot`**: The GPG key downloaded from `https://repo.radeon.com/rocm/rocm.gpg.key` and converted to binary format via `gpg --dearmor`.
+
 ### Kernel Support
 - **In-tree AMDGPU**: Ensure `linux-image-amd64/bookworm-backports` (6.12+) is used for RDNA3+ support.
 - **Firmware**: Ensure `firmware-amd-graphics` is installed.

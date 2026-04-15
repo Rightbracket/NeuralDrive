@@ -48,27 +48,52 @@ NeuralDrive uses a GPT partition table.
 | 1 | EFI | EFI System | FAT32 | 512 MiB | UEFI boot |
 | 2 | NBOOT | Linux | ext2 | 1 GiB | GRUB + kernel + initramfs |
 | 3 | NSYSTEM | Linux | SquashFS | 8 GiB | Read-only root filesystem |
-| 4 | NDATA | Linux | ext4 | Remaining | Persistent data |
+| 4 | persistence | Linux | ext4 | Remaining | Persistent data |
+
+**Important**: Partition 4 must have the filesystem label `persistence` (exact, lowercase). This is required by live-boot for automatic persistence detection. The kernel boot parameter `persistence` must also be present in the GRUB configuration (see 01-base-system.md §4).
 
 ### Expansion Script
-On the first boot, NeuralDrive expands the `NDATA` partition to use the full disk.
+The persistence partition is created as a **post-dd step** after writing the ISO to USB. live-build produces a fixed-size ISO-hybrid image; the persistence partition is created in the remaining free space.
 
+**Two-step USB setup:**
+
+1. Write the ISO to USB:
 ```bash
-# Expand NDATA partition to fill USB
-PART_NUM=4
-DEV_PATH="/dev/sdb" # Example path
-parted ${DEV_PATH} resizepart ${PART_NUM} 100%
-resize2fs ${DEV_PATH}${PART_NUM}
+sudo dd if=neuraldrive.iso of=/dev/sdX bs=4M conv=fsync status=progress
 ```
+
+2. Create the persistence partition (run on the host, not the live system):
+```bash
+# Find the end of the ISO's partitions and create partition in remaining space
+sudo parted /dev/sdX -- mkpart primary ext4 -1 100%
+sudo mkfs.ext4 -L persistence /dev/sdXN   # where N is the new partition number
+sudo mount /dev/sdXN /mnt
+sudo mkdir -p /mnt/neuraldrive/{models,config,logs,home}
+sudo mkdir -p /mnt/neuraldrive/models/{manifests,blobs}
+cat <<'EOF' | sudo tee /mnt/persistence.conf
+/var/lib/neuraldrive  union
+/etc/neuraldrive      union
+/var/log/neuraldrive  union
+/home                 union
+EOF
+sudo umount /mnt
+```
+
+Alternatively, the NeuralDrive toolkit (09-image-toolkit.md) provides a `neuraldrive-flash` helper script that automates both steps.
+
+**Note**: Re-flashing a new ISO image to the USB will destroy ALL partitions, including the persistence partition. Users must back up their persistent data before upgrading. See the upgrade procedure below.
 
 ## Section 3: Persistence Implementation
 
 NeuralDrive uses the `live-boot` persistence mechanism.
 
-- **Mechanism**: `overlayfs` with `NDATA` as the upper layer.
-- **Persistence Configuration**: `/etc/persistence.conf` (on the NDATA partition).
+- **Mechanism**: `overlayfs` with the persistence partition as the upper layer.
+- **Partition Label**: Must be `persistence` (exact, lowercase) for live-boot auto-detection.
+- **Persistence Configuration**: `persistence.conf` placed at the **root of the persistence partition filesystem** (not in `/etc/`).
+- **Boot Parameter**: The GRUB kernel command line must include `persistence` (see 01-base-system.md §4).
 
 ### Content of `persistence.conf`
+This file is placed on the root of the persistence partition (e.g., after mounting the partition at `/mnt`, the file would be `/mnt/persistence.conf`):
 ```text
 /var/lib/neuraldrive  union
 /etc/neuraldrive      union
@@ -78,7 +103,7 @@ NeuralDrive uses the `live-boot` persistence mechanism.
 
 ## Section 4: Model Storage Management
 
-Models are stored in `/var/lib/neuraldrive/models/` which is part of the persistent `NDATA` partition.
+Models are stored in `/var/lib/neuraldrive/models/` which is part of the persistent `persistence` partition (mounted via live-boot overlayfs).
 
 - **Storage Monitoring**: `neuraldrive-storage-monitor.service`
 - **Thresholds**:
@@ -115,7 +140,7 @@ If `NEURALDRIVE_IS_CD=true`:
 
 ## Section 7: Storage Security (Optional LUKS2)
 
-Users can choose to encrypt the `NDATA` partition during the first-boot setup.
+Users can choose to encrypt the persistence partition during the first-boot setup.
 
 ```bash
 # Format with LUKS2
@@ -130,10 +155,12 @@ mkfs.ext4 /dev/mapper/neuraldrive_data
 - **`commit=60`**: Reduces wear by batching writes every 60 seconds.
 - **`zram`**: Used for swap to prevent wearing out the USB with paging.
 
-### Mount Flags in `/etc/fstab` (on NDATA)
-```text
-LABEL=NDATA /var/lib/neuraldrive ext4 defaults,noatime,commit=60,data=writeback 0 2
-```
+### Mount Flags
+The persistence partition is mounted automatically by live-boot's overlayfs mechanism using the directories specified in `persistence.conf`. The following mount options are applied via the live-boot configuration:
+- **`noatime`**: Reduces wear by not updating access times.
+- **`commit=60`**: Reduces wear by batching writes every 60 seconds.
+
+These are configured by including a `fstab` fragment in the persistence setup or by passing mount options to live-boot. The persistence partition itself does not appear in `/etc/fstab`; live-boot manages its mounting.
 
 ### zram Swap Configuration
 NeuralDrive uses zram (compressed RAM swap) instead of on-disk swap to avoid USB wear.
@@ -173,46 +200,52 @@ WantedBy=multi-user.target
 ```
 
 ### Partition Creation Commands (for USB image writing tools)
-These are the exact `sgdisk` commands used by the first-boot initialization to set up the USB partition layout:
+These are the commands used by the post-dd setup step (or the `neuraldrive-flash` helper from 09-image-toolkit.md) to create the persistence partition:
 
 ```bash
 #!/bin/bash
-# /usr/lib/neuraldrive/init-partitions.sh
-# Called during first-boot to create NDATA partition on remaining USB space
+# /usr/lib/neuraldrive/prepare-usb.sh
+# Run on the HOST after dd'ing the ISO to USB.
+# Usage: sudo ./prepare-usb.sh /dev/sdX
 
-DEV="$1"  # e.g., /dev/sda
+set -e
 
-# Verify this is the boot device and has free space
+DEV="$1"
 if [ -z "$DEV" ]; then
-    echo "Usage: init-partitions.sh /dev/sdX"
+    echo "Usage: prepare-usb.sh /dev/sdX"
     exit 1
 fi
 
-# Get the end of the last partition
-LAST_END=$(sgdisk -p "$DEV" | tail -1 | awk '{print $3}')
-DISK_END=$(sgdisk -p "$DEV" | grep "last usable sector" | awk '{print $NF}')
-
-if [ "$LAST_END" -ge "$DISK_END" ]; then
-    echo "No free space available for NDATA partition."
-    exit 0
+# Safety check — ensure this looks like a NeuralDrive USB
+if ! lsblk -no LABEL "$DEV"* 2>/dev/null | grep -q "NeuralDrive"; then
+    echo "Error: $DEV does not appear to contain a NeuralDrive image."
+    exit 1
 fi
 
-# Create partition 4 (NDATA) using remaining space
-sgdisk -n 4:0:0 -t 4:8300 -c 4:"NDATA" "$DEV"
-partprobe "$DEV"
-sleep 2
+# Create persistence partition in remaining free space
+echo "Creating persistence partition..."
+sudo parted "$DEV" -- mkpart primary ext4 -1 100%
+PART_NUM=$(lsblk -ln -o NAME "$DEV" | tail -1)
+PART_DEV="/dev/$PART_NUM"
 
-# Format as ext4 with optimized settings
-mkfs.ext4 -L NDATA -O ^has_journal -m 1 "${DEV}4"
+# Format with label 'persistence' (required by live-boot)
+sudo mkfs.ext4 -L persistence -O ^has_journal -m 1 "$PART_DEV"
 
 # Re-enable journal in writeback mode for performance
-tune2fs -o journal_data_writeback -J size=64 "${DEV}4"
+sudo tune2fs -o journal_data_writeback -J size=64 "$PART_DEV"
 
-# Create directory structure
-mount "${DEV}4" /mnt
-mkdir -p /mnt/neuraldrive/{models,config,logs,home}
-mkdir -p /mnt/neuraldrive/models/{manifests,blobs}
-umount /mnt
+# Mount and set up persistence.conf + directory structure
+sudo mount "$PART_DEV" /mnt
+cat <<'EOF' | sudo tee /mnt/persistence.conf
+/var/lib/neuraldrive  union
+/etc/neuraldrive      union
+/var/log/neuraldrive  union
+/home                 union
+EOF
+sudo mkdir -p /mnt/neuraldrive/{models,config,logs,home}
+sudo mkdir -p /mnt/neuraldrive/models/{manifests,blobs}
+sudo umount /mnt
 
-echo "NDATA partition created and formatted on ${DEV}4"
+echo "Persistence partition created and configured on $PART_DEV"
+echo "USB is ready to boot."
 ```

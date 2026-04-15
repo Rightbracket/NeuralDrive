@@ -186,3 +186,146 @@ The following issues were identified by an independent UX review that read all 1
 
 ### Gaps Addressed by This Review
 All findings above should be addressed during implementation. The plan is comprehensive and covers all required aspects of the project. The issues identified are implementation-time details that a developer following the plan should resolve, and they are documented here for reference. Key fixes have been applied directly to the plan files where possible; remaining items are clearly flagged for implementation-time resolution.
+
+---
+
+## Review 4: Implementation Readiness Audit
+
+Full cross-file review of all 16 plan documents against the-ask.md requirements. Every requirement from the-ask.md is covered. However, 25 issues were found that would prevent a developer from building a working system from the plan as-written. Issues are categorized by severity.
+
+### Requirements Coverage (the-ask.md → Plan)
+
+All explicit requirements from the-ask.md have corresponding plan coverage:
+
+| Requirement | Covered By |
+| :--- | :--- |
+| LiveCD/LiveUSB distro | 00, 01 (live-build, Debian 12) |
+| Boot from CD or USB | 01 (GRUB, iso-hybrid), 04 (CD/USB modes) |
+| Load LLMs from media | 03 (pre-loaded models), 09 (model pre-loading) |
+| Download models on USB | 03 (ollama pull), 04 (persistence) |
+| Multiple concurrent models | 03 §4 (Ollama concurrency) |
+| GPU acceleration | 02 (NVIDIA, AMD, Intel, auto-detection) |
+| Lightweight/optimized | 01 (minimal packages), 04 (zram, noatime) |
+| Simple accessible UI | 06 (TUI), 07/07a-d (web) |
+| Text interface | 06 (Textual TUI) |
+| Web interface | 07, 07a-07d (Open WebUI + System Panel) |
+| Security | 05 (nftables, hardening, TLS, auth) |
+| Data persistence | 04 (partition, overlayfs) |
+| Minimal services, SSH optional | 01 (SSH disabled), 05 (SSH hardening) |
+| Custom image toolkit | 09 (neuraldrive-builder) |
+| Remote access / coding agents | 08 (OpenAI-compatible API, client guides) |
+| Storage management | 04 (partition layout, monitoring) |
+| CD non-persistent mode | 04 §6 (tmpfs, external storage) |
+
+### BLOCKING — System Will Not Work
+
+**B1. Persistence will not activate — missing boot parameter** (01 §4, 04 §3)
+- None of the GRUB menu entries include the `persistence` keyword. Without this kernel parameter, live-boot completely ignores any persistence partition.
+- **Fix**: Add `persistence` to the Normal boot entry's kernel parameters.
+- **Status**: ✅ FIXED
+
+**B2. Wrong partition label for persistence** (04 §2, §3)
+- The plan uses partition label `NDATA`. live-boot requires the exact label `persistence` (case-sensitive, lowercase). A partition labeled `NDATA` will be silently ignored.
+- Additionally, `persistence.conf` must be on the root of the persistence partition filesystem, not at `/etc/persistence.conf` as stated in §3.
+- **Fix**: Change partition label to `persistence`, fix persistence.conf location description, or use `persistence-label=NDATA` boot parameter.
+- **Status**: ✅ FIXED
+
+**B3. No systemd service unit for Caddy** (01 §hooks, 07 §4)
+- The binary is downloaded to `/usr/local/bin/caddy` but no `neuraldrive-caddy.service` unit exists. Caddy will never start.
+- **Fix**: Add a systemd service unit for Caddy.
+- **Status**: ✅ FIXED
+
+**B4. No build hooks for Python components** (01, 06, 07, 08)
+- The following components are described but have no chroot build hook to install them:
+  - Open WebUI (pip install in venv)
+  - GPU Hot (pip install in venv)
+  - TUI dependencies (textual, psutil, httpx, rich)
+  - System Management API dependencies (fastapi, uvicorn)
+- Without these hooks, the image will boot with none of these services available.
+- **Fix**: Add hook `04-install-python-apps.chroot` covering all Python components.
+- **Status**: ✅ FIXED
+
+**B5. Missing systemctl enables in chroot hook** (01 §hooks)
+- Only 4 services are enabled: `neuraldrive-setup`, `neuraldrive-gpu-detect`, `nftables`, `avahi-daemon`.
+- Missing enables: `neuraldrive-ollama`, `neuraldrive-webui`, `neuraldrive-caddy`, `neuraldrive-gpu-monitor`, `neuraldrive-tui`, `neuraldrive-zram`, `neuraldrive-system-api`.
+- **Fix**: Add all service enables to the chroot hook.
+- **Status**: ✅ FIXED
+
+**B6. Certificate generation not wired to boot sequence** (05 §4)
+- `generate-certs.sh` is defined but never called. No systemd unit triggers it. Caddy needs certs to start — without them, HTTPS is broken.
+- **Fix**: Add a `neuraldrive-certs.service` that runs before Caddy, generating certs on first boot and persisting them.
+- **Status**: ✅ FIXED
+
+**B7. Missing config file generation** (07 §1.2, 03 §1)
+- The systemd unit references `EnvironmentFile=/etc/neuraldrive/webui.env` but no hook or script creates this file.
+- Similarly, `/etc/neuraldrive/ollama.conf` is referenced but not created during build.
+- **Fix**: Add config file templates to the build hooks or first-boot script.
+- **Status**: ✅ FIXED
+
+**B8. Ollama installation method contradicts between files** (01 §hooks vs 03 §1)
+- 01 hook downloads a standalone binary. 03 says "official .deb package." These are different approaches.
+- **Fix**: Standardize on the binary download approach (which is what the hook already does). Fix 03 description.
+- **Status**: ✅ FIXED
+
+### SIGNIFICANT — Would Cause Confusion or Incorrect Behavior
+
+**S1. First-boot sentinel file inconsistency** (01 §5 vs 06 §6)
+- 01 uses `/etc/neuraldrive/initialized` for the setup service.
+- 06 uses `/etc/neuraldrive/first-boot-complete` for the TUI wizard.
+- These may be intentionally different (system init vs user wizard), but the relationship is not documented.
+- **Fix**: Document that these are two separate concerns: system initialization (runs once silently) and user setup wizard (interactive, runs after system init).
+- **Status**: ✅ FIXED
+
+**S2. TUI has two startup mechanisms** (01 §hooks vs 06 §1)
+- 01 configures autologin + `.profile` to exec the TUI on tty1.
+- 06 defines a `neuraldrive-tui.service` systemd unit.
+- Both attempt to run the TUI, which would conflict.
+- **Fix**: Use `.profile` method (01) for interactive TUI. Remove the systemd service from 06 — TUI is an interactive terminal app, not a background service.
+- **Status**: ✅ FIXED
+
+**S3. System Management API split across two files** (07 §6 vs 08 §4)
+- 07 has a skeleton with `GET /status` and `POST /services/{name}/restart`.
+- 08 has a different skeleton with `GET /system/status`, `GET /system/logs`, `POST /system/ssh/{action}`.
+- Different path prefixes and different endpoints.
+- The web design (07c) references 10 endpoints, only 3 exist in either skeleton.
+- **Fix**: Consolidate into 08 as the canonical API definition. Add all missing endpoints. Update 07 to reference 08.
+- **Status**: ✅ FIXED
+
+**S4. Persistence partition is a post-dd step, not first-boot** (04 §2, §8)
+- The plan says first-boot creates the NDATA partition. But live-build creates a fixed-size ISO. After `dd`ing to USB, there IS free space, but partition creation requires running a partitioning tool AFTER writing the ISO — either manually or via a helper script bundled separately.
+- live-boot's official documentation confirms this is a post-dd step.
+- Also: re-flashing the ISO destroys ALL partitions including persistence.
+- **Fix**: Document the two-step USB setup process and update the upgrade path.
+- **Status**: ✅ FIXED
+
+**S5. API routes in Caddyfile have no authentication** (07 §4, 11 Security §1)
+- `/v1/*` and `/api/*` route directly to Ollama without auth. Ollama has no native auth. Anyone on the network can use the API.
+- **Fix**: Add Caddy-level bearer token authentication for `/v1/*` and `/api/*` routes. Use environment variable `{env.NEURALDRIVE_API_KEY}` loaded via systemd `EnvironmentFile`. Unauthenticated requests receive 401. System Management API at `/system/*` uses its own FastAPI-level auth.
+- **Status**: ✅ FIXED
+
+**S6. SUDOERS NOPASSWD not removed after first-boot** (01 §hooks, 11 Security §2)
+- Flagged in prior review but fix not applied to any plan file.
+- **Fix**: Add sudoers update to first-boot wizard completion step.
+- **Status**: ✅ FIXED
+
+**S7. ROCm archive files missing from build config** (02 §2, 11 §5)
+- ROCm repo setup is shown as runtime commands, not as live-build archive sources.
+- **Fix**: Add `config/archives/rocm.list.chroot` and `config/archives/rocm.key.chroot`.
+- **Status**: ✅ FIXED
+
+**S8. Model pre-loading during build is undefined** (03 §3, 09 §5)
+- 03 says "run `ollama pull` during chroot" but Ollama needs to be running as a server.
+- 09 describes a `models.squashfs` overlay approach.
+- Neither provides a working build script.
+- **Fix**: Document the two-phase approach: start Ollama temporarily during build, pull models, stop it. Provide the script.
+- **Status**: ✅ FIXED
+
+### MINOR — Documentation Gaps
+
+**M1.** Overview table (00 §4) doesn't list 07a-07d companion design documents.
+**M2.** Wi-Fi onboarding not in wizard steps (flagged in prior review, not addressed).
+**M3.** Headless first-boot not documented as an explicit constraint.
+**M4.** mDNS rate limiting not applied to nftables rules.
+**M5.** GPU Hot package availability on PyPI unverified — may need a custom wrapper.
+**M6.** Upgrade path still not documented beyond "re-flash ISO."
+**M7.** Missing `neuraldrive-system-api` user in service users list (05 §3).

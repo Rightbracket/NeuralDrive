@@ -105,12 +105,13 @@ def test_chat_completion():
 ```
 
 ## 5. USB Lifecycle & Persistence
-We test the robustness of the `NDATA` partition and persistence layers.
+We test the robustness of the persistence partition and live-boot overlay layers.
 
-1.  **Fresh Install**: dd image → boot → verify first-boot wizard.
+1.  **Fresh Install**: dd image → run `prepare-usb.sh` → boot → verify first-boot wizard.
 2.  **Persistence Check**: Pull `llama3.1:8b` → reboot → verify model is still present.
-3.  **Expansion**: Verify `NDATA` partition utilizes the full remaining USB capacity.
+3.  **Expansion**: Verify the persistence partition utilizes the full remaining USB capacity.
 4.  **Security**: Verify that selecting LUKS encryption during the wizard prompts for a password on subsequent boots.
+5.  **Re-flash**: Verify that re-flashing the ISO destroys the persistence partition (expected), and that `prepare-usb.sh` recreates it correctly.
 
 ## 6. Performance Benchmarking
 Metrics are published to `docs/benchmarks.md` to help users choose hardware.
@@ -129,6 +130,36 @@ Versions use CalVer format: `YYYY.MM.PATCH` (e.g., `2026.04.0`).
 - [ ] Security scan (`debsecan`) confirms no critical vulnerabilities in base packages.
 - [ ] `SHA256SUMS` generated and signed with the NeuralDrive GPG key.
 - [ ] `CHANGELOG.md` updated with new features and model updates.
+
+## 7.1 Upgrade Procedure
+NeuralDrive upgrades are delivered as new ISO images. The upgrade process:
+
+1. **Back up persistent data** from the USB (models, configs):
+   ```bash
+   # Mount the persistence partition and copy critical data
+   sudo mount /dev/sdXN /mnt
+   cp -r /mnt/neuraldrive/models /backup/models
+   cp -r /mnt/neuraldrive/config /backup/config
+   sudo umount /mnt
+   ```
+2. **Re-flash the USB** with the new ISO:
+   ```bash
+   sudo dd if=neuraldrive-new.iso of=/dev/sdX bs=4M conv=fsync status=progress
+   ```
+3. **Recreate the persistence partition** (re-flashing destroys all partitions):
+   ```bash
+   sudo ./prepare-usb.sh /dev/sdX
+   ```
+4. **Restore backed-up data** (optional — models can also be re-downloaded):
+   ```bash
+   sudo mount /dev/sdXN /mnt
+   cp -r /backup/models/* /mnt/neuraldrive/models/
+   cp -r /backup/config/* /mnt/neuraldrive/config/
+   sudo umount /mnt
+   ```
+5. **Boot** the new version. The first-boot wizard will NOT re-run if the restored persistence contains `/etc/neuraldrive/first-boot-complete`.
+
+**Important**: Re-flashing always destroys the persistence partition. Users MUST back up before upgrading. Future releases may include a `neuraldrive-upgrade` tool that automates the backup/flash/restore cycle.
 
 ## 8. CI/CD Pipeline
 GitHub Actions automates the build and artifact generation.
