@@ -1,0 +1,20 @@
+[book]
+title = "NeuralDrive User Guide"
+authors = ["NeuralDrive Contributors"]
+description = "User documentation for the NeuralDrive LLM inference server"
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "coal"
+preferred-dark-theme = "coal"
+site-url = "/NeuralDrive/user-guide/"
+git-repository-url = "https://github.com/NeuralDrive/NeuralDrive"
+edit-url-template = "https://github.com/NeuralDrive/NeuralDrive/edit/main/docs/user-guide/src/{path}"
+additional-css = ["custom.css"]
+
+[output.html.search]
+enable = true

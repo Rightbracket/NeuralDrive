@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NeuralDrive Documentation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h1 {
+      color: #f59e0b;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: #a1a1aa;
+      font-size: 1.1rem;
+      margin-bottom: 3rem;
+    }
+    .cards {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 700px;
+    }
+    .card {
+      display: block;
+      background: #141414;
+      border: 1px solid #2e2e2e;
+      border-radius: 8px;
+      padding: 2rem;
+      width: 300px;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .card:hover {
+      border-color: #f59e0b;
+      background: #1f1f1f;
+    }
+    .card h2 {
+      color: #10b981;
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+    .card p {
+      color: #a1a1aa;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .card .arrow {
+      display: block;
+      margin-top: 1rem;
+      color: #f59e0b;
+      font-size: 0.9rem;
+    }
+    footer {
+      margin-top: 3rem;
+      color: #52525b;
+      font-size: 0.85rem;
+    }
+    footer a {
+      color: #a1a1aa;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>NeuralDrive</h1>
+  <p class="subtitle">Boot-to-inference LLM server on a USB stick.</p>
+
+  <div class="cards">
+    <a href="user-guide/" class="card">
+      <h2>User Guide</h2>
+      <p>Get started, manage models, connect coding agents, configure your server, and troubleshoot issues.</p>
+      <span class="arrow">Read the User Guide &rarr;</span>
+    </a>
+    <a href="dev-guide/" class="card">
+      <h2>Developer Guide</h2>
+      <p>Contribute to NeuralDrive: architecture, build system, component internals, testing, and releases.</p>
+      <span class="arrow">Read the Developer Guide &rarr;</span>
+    </a>
+  </div>
+
+  <footer>
+    <a href="https://github.com/NeuralDrive/NeuralDrive">GitHub</a>
+  </footer>
+</body>
+</html>

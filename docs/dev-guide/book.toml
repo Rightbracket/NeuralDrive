@@ -1,0 +1,20 @@
+[book]
+title = "NeuralDrive Developer Guide"
+authors = ["NeuralDrive Contributors"]
+description = "Developer and contributor documentation for NeuralDrive"
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "coal"
+preferred-dark-theme = "coal"
+site-url = "/NeuralDrive/dev-guide/"
+git-repository-url = "https://github.com/NeuralDrive/NeuralDrive"
+edit-url-template = "https://github.com/NeuralDrive/NeuralDrive/edit/main/docs/dev-guide/src/{path}"
+additional-css = ["custom.css"]
+
+[output.html.search]
+enable = true

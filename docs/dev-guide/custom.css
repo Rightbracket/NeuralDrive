@@ -1,0 +1,18 @@
+/* NeuralDrive Developer Guide — Custom Styles */
+
+/* Terminal-aesthetic code blocks */
+.coal code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+}
+
+/* Quick-reference tables */
+table {
+    width: 100%;
+}
+th {
+    text-align: left;
+    border-bottom: 2px solid #2e2e2e;
+}
+td, th {
+    padding: 0.4em 0.6em;
+}
