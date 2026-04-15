@@ -9,7 +9,7 @@ NeuralDrive includes a suite of automated and manual tests to ensure system stab
 Before flashing to physical hardware, use QEMU to verify that the ISO image boots to the TUI login screen.
 
 ```bash
-./scripts/test-boot.sh build/neuraldrive-dev.iso
+./tests/test-boot.sh build/neuraldrive-dev.iso
 ```
 
 This script launches a virtual machine with:
@@ -29,7 +29,7 @@ sudo /usr/lib/neuraldrive/gpu-detect.sh
 This should correctly identify the active GPU and generate `/run/neuraldrive/gpu.conf` with the appropriate vendor tags.
 
 ### Inference Verification
-The `scripts/test-gpu.sh` utility performs a small inference task to verify that the Ollama service can communicate with the GPU drivers and load a model into VRAM.
+The `tests/test-gpu.sh` utility performs a small inference task to verify that the Ollama service can communicate with the GPU drivers and load a model into VRAM.
 
 ## API and Integration Testing
 

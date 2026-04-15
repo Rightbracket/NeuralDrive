@@ -22,7 +22,7 @@ To run it manually from any shell session, use the command:
 neuraldrive-tui
 ```
 
-This command is a symlink from `/usr/local/bin/neuraldrive-tui` to the actual source at `/usr/lib/neuraldrive/tui/main.py`.
+This launcher script (installed at `/usr/local/bin/neuraldrive-tui`) activates the Python virtual environment and runs the application from `/usr/lib/neuraldrive/tui/main.py`.
 
 ## Main Dashboard Layout
 

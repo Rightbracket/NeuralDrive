@@ -12,12 +12,12 @@ This screen displays all `neuraldrive-*` services and their current operational 
 - **Inactive:** The service is stopped.
 - **Failed:** The service encountered an error and crashed.
 
-The primary services you will see are:
+The primary services you will see include:
 
 - `neuraldrive-ollama`: The model execution engine.
 - `neuraldrive-webui`: The browser-based interface.
-- `neuraldrive-tui`: The terminal interface itself (restarting this will reload the TUI).
-- `neuraldrive-network`: Manages mDNS and hostname settings.
+- `neuraldrive-caddy`: The reverse proxy handling TLS and routing.
+- `neuraldrive-system-api`: The system management API.
 
 ## Managing Services
 

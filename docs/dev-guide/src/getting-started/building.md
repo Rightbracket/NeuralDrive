@@ -29,7 +29,7 @@ The `build.sh` script coordinates several distinct phases:
 3. **Branding**: Applies NeuralDrive-specific themes, splash screens, and versioning info.
 4. **Model Staging**: Downloads base models defined in `neuraldrive-models.yaml` so they can be baked into the image (if configured).
 5. **Chroot Construction**: Downloads the Debian base and installs packages listed in `config/package-lists/`.
-6. **Hook Execution**: Runs the scripts in `config/hooks/normal/` to configure services and user accounts.
+6. **Hook Execution**: Runs the scripts in `config/hooks/live/` to configure services and user accounts.
 7. **Binary Stage**: Packs the filesystem into a SquashFS image and generates the final ISO.
 
 ## Incremental Builds and Cleanup

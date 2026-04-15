@@ -43,8 +43,8 @@ The System API and TUI are developed in Python. It is recommended to use a virtu
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r config/includes.chroot/usr/lib/neuraldrive/api/requirements.txt
-pip install -r config/includes.chroot/usr/lib/neuraldrive/tui/requirements.txt
+pip install textual psutil httpx rich  # TUI dependencies
+pip install fastapi uvicorn            # API dependencies
 ```
 
 ## Repository Structure
@@ -68,5 +68,5 @@ To test the generated ISO images without flashing a physical drive, install QEMU
 ```bash
 sudo apt install qemu-system-x86 qemu-utils
 ```
-This allows you to run the `scripts/test-boot.sh` utility to verify that the image boots correctly in a virtualized environment.
+This allows you to run the `tests/test-boot.sh` utility to verify that the image boots correctly in a virtualized environment.
 

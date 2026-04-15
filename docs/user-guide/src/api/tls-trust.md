@@ -14,8 +14,8 @@ You can retrieve the CA certificate (`neuraldrive-ca.crt`) using one of three me
 
 1.  **SCP (Recommended):** Use secure copy to pull the file directly from the NeuralDrive server.
     `scp <username>@neuraldrive.local:/etc/neuraldrive/tls/neuraldrive-ca.crt ./`
-2.  **System API:** Download the certificate via the management endpoint.
-    `curl -k -H "Authorization: Bearer <API_KEY>" https://neuraldrive.local:8443/system/ca-cert -o neuraldrive-ca.crt`
+2.  **System API:** Download the certificate via the management endpoint. This endpoint is public and does not require authentication.
+    `curl -k https://neuraldrive.local:8443/system/ca-cert -o neuraldrive-ca.crt`
 3.  **Local Filesystem:** If you have direct terminal access to the NeuralDrive machine, the file is located at `/etc/neuraldrive/tls/neuraldrive-ca.crt`.
 
 ## Installing the Certificate

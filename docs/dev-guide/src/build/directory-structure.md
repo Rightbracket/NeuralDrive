@@ -17,7 +17,7 @@ The `config/` directory is the heart of the `live-build` setup.
 
 - `archives/`: Contains `.list` and `.key` files for external repositories (e.g., ROCm, Intel, Debian Backports).
 - `hooks/`:
-  - `normal/`: Scripts that run inside the chroot during the build process. They must be named with a numeric prefix (e.g., `01-setup.hook.chroot`).
+  - `live/`: Scripts that run inside the chroot during the build process. They must be named with a numeric prefix (e.g., `01-setup-system.chroot`).
 - `includes.chroot/`: This directory mirrors the root filesystem of the final appliance.
   - `etc/neuraldrive/`: Configuration files for Ollama, WebUI, and the System API.
   - `etc/systemd/system/`: Systemd unit files for all NeuralDrive services.
@@ -30,9 +30,12 @@ The `config/` directory is the heart of the `live-build` setup.
 ## scripts/
 
 Contains utility scripts for developers and maintainers:
-- `flash-usb.sh`: Writes a generated ISO to a physical USB drive.
-- `test-boot.sh`: Launches the ISO in QEMU for verification.
-- `update-models.sh`: Refreshes the model metadata catalog.
+- `neuraldrive-flash.sh`: Writes a generated ISO to a physical USB drive.
+- `download-models.sh`: Downloads model weights from the Ollama registry for pre-loading.
+- `seed-models.sh`: Stages downloaded models into the build filesystem.
+- `apply-branding.sh`: Applies NeuralDrive branding to the Open WebUI interface.
+- `validate-config.sh`: Validates the build configuration before starting.
+- `post-build.sh`: Post-build cleanup and image finalization.
 
 ## docs/
 
@@ -44,6 +47,7 @@ Source files for the documentation.
 
 Integration and unit tests.
 - `test_api.py`: Pytest suite for the System API.
+- `test-boot.sh`: Launches the ISO in QEMU for boot verification.
 - `test-gpu.sh`: Shell script for on-target GPU validation.
 
 ## plan/

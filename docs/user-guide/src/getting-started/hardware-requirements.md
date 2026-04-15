@@ -32,9 +32,9 @@ NeuralDrive automatically detects and configures drivers for major GPU vendors.
 
 | Vendor | Generation | Example Hardware | Driver Type | Compute Stack | Status |
 |--------|------------|------------------|-------------|---------------|--------|
-| NVIDIA | Ada Lovelace | RTX 4090 | Proprietary 560+ | CUDA 12.x | Supported |
-| NVIDIA | Ampere | RTX 3060 | Proprietary 560+ | CUDA 12.x | Supported |
-| NVIDIA | Pascal | GTX 1080 | Proprietary 560+ | CUDA 12.x | Supported |
+| NVIDIA | Ada Lovelace | RTX 4090 | Proprietary 535+ | CUDA 12.x | Supported |
+| NVIDIA | Ampere | RTX 3060 | Proprietary 535+ | CUDA 12.x | Supported |
+| NVIDIA | Pascal | GTX 1080 | Proprietary 535+ | CUDA 12.x | Supported |
 | AMD | RDNA 3 | RX 7900 XTX | amdgpu + ROCm | ROCm 6.x | Supported |
 | AMD | RDNA 2 | RX 6800 XT | amdgpu + ROCm | ROCm 6.x | Supported |
 | Intel | Arc | A770 | compute-runtime | oneAPI | Experimental |

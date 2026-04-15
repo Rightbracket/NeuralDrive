@@ -6,19 +6,25 @@ NeuralDrive is designed to operate as a secure network appliance. It uses a comb
 
 ## Edge Proxy (Caddy)
 
-Caddy serves as the single point of entry for all network traffic. It listens on port 443 and manages the following internal routing:
+Caddy serves as the single point of entry for all network traffic. It listens on two ports with distinct responsibilities:
+
+### Port 443 — Web Dashboard
 
 | External Path | Internal Destination | Purpose |
 |---------------|----------------------|---------|
-| `/`           | `localhost:3000`     | Open WebUI |
-| `/v1/*`       | `localhost:11434`    | Ollama OpenAI-compatible API |
-| `/api/*`      | `localhost:11434`    | Ollama Native API |
+| `/*`          | `localhost:3000`     | Open WebUI |
+
+### Port 8443 — API Gateway
+
+| External Path | Internal Destination | Purpose |
+|---------------|----------------------|---------|
+| `/v1/*`       | `localhost:11434`    | Ollama OpenAI-compatible API (authenticated) |
+| `/api/*`      | `localhost:11434`    | Ollama Native API (authenticated) |
 | `/system/*`   | `localhost:3001`     | System API (FastAPI) |
 | `/monitor/*`  | `localhost:1312`     | GPU Hot Dashboard |
 | `/health`     | `200 OK`             | Liveness Probe |
 
-### Multiplexed API Port (8443)
-In addition to the standard HTTPS port, NeuralDrive can be configured to listen on port 8443 specifically for programmatic API access. This helps separate browser traffic from automated scripts or external integrations.
+This dual-port architecture separates browser traffic from programmatic API access, allowing each to be managed and monitored independently.
 
 ## Service Discovery (mDNS)
 
@@ -28,7 +34,7 @@ The mDNS name can be changed via the System API or the first-boot wizard.
 
 ## Firewall (nftables)
 
-The system uses `nftables` with a "default drop" policy. The firewall configuration is managed via `/etc/nftables.conf` and a custom drop-in at `/etc/nftables.service.d/neuraldrive.conf`.
+The system uses `nftables` with a "default drop" policy. The firewall configuration is managed via `/etc/neuraldrive/nftables.conf`, loaded through a systemd drop-in at `/etc/systemd/system/nftables.service.d/neuraldrive.conf`.
 
 ### Permitted Traffic
 - **Inbound TCP 443/8443**: WebUI and API access.

@@ -46,7 +46,7 @@ If the model is generating text very slowly (less than 1 token per second):
 1.  **Exact Naming**: Models must be called by their full tag (e.g., `llama3:8b`).
 2.  **Verify Inventory**: Use the TUI or the following API command to list all locally available models:
     ```bash
-    curl https://<IP>:8443/api/tags
+    curl -H "Authorization: Bearer nd-xxxx" https://<IP>:8443/api/tags
     ```
 
 ### Model Corruption
@@ -55,7 +55,8 @@ If a model loads but produces garbled output or crashes the service:
 
 1.  **Delete and Re-pull**: Remove the corrupted model and download it again via the TUI or API:
     ```bash
-    curl -X DELETE https://<IP>:8443/api/delete -d '{"name":"model_name"}'
+    curl -H "Authorization: Bearer nd-xxxx" \
+      -X DELETE https://<IP>:8443/api/delete -d '{"name":"model_name"}'
     ```
 
 > **Note**: For specific model recommendations based on your hardware, see [Model Recommendations](../models/recommendations.md). For GPU-specific issues, consult [GPU Problems](gpu.md).

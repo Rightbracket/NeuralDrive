@@ -42,5 +42,7 @@ In addition to the rate-limiting provided by the firewall, `fail2ban` monitors S
 
 The system firewall (`nftables`) further protects the SSH port by rate-limiting new connections to 3 per minute with a burst allowance of 5 packets.
 
-[Security](security.md)
-[Firewall](firewall.md)
+## See Also
+
+- [Security](security.md) — NeuralDrive security architecture and hardening overview.
+- [Firewall](firewall.md) — nftables configuration and port management.

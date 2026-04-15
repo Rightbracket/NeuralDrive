@@ -70,10 +70,10 @@ curl -k https://neuraldrive.local:8443/health
 
 ### System CA Certificate
 
-Download the CA certificate directly from the System API if you do not have SSH access.
+Download the CA certificate directly from the System API if you do not have SSH access. This endpoint is public and does not require authentication. Use `-k` to skip certificate verification — you cannot verify a certificate you have not yet downloaded.
 
 ```bash
-curl --cacert neuraldrive-ca.crt \
-  -H "Authorization: Bearer nd-xxxxxxxxxxxxxxxxxxxx" \
-  https://neuraldrive.local:8443/system/ca-cert -o neuraldrive-ca.crt
+curl -k https://neuraldrive.local:8443/system/ca-cert -o neuraldrive-ca.crt
 ```
+
+Once you have the certificate, verify it by checking its fingerprint against the value displayed in the TUI or on the console during boot.

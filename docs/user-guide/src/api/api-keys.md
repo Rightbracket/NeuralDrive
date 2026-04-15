@@ -17,9 +17,7 @@ There are several ways to retrieve your current API key:
 
 *   **First-Boot:** On your first login to the NeuralDrive console, the initial API key is displayed in the welcome banner.
 *   **NeuralDrive TUI:** Launch the Text User Interface by running `neuraldrive-tui` on the server. Navigate to the **Security** or **API** section to view the active key.
-*   **System Files:** If you have terminal access, the key is stored in plain text at:
-    *   `/etc/neuraldrive/api.key`
-    *   `/etc/neuraldrive/credentials.conf`
+*   **System Files:** If you have terminal access, the key is stored in plain text at `/etc/neuraldrive/api.key`.
 
 ## Rotating API Keys
 

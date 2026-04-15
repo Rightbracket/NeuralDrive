@@ -18,20 +18,21 @@ The following diagram illustrates the relationship between the primary NeuralDri
 ```text
 multi-user.target
 ├── neuraldrive-caddy.service
-│   ├── After: network.target
+│   ├── After: network-online.target, neuraldrive-certs.service
 │   ├── Requires: neuraldrive-certs.service
-│   └── Wants: neuraldrive-webui.service, neuraldrive-system-api.service
+│   └── Wants: network-online.target
 ├── neuraldrive-webui.service
-│   ├── After: neuraldrive-ollama.service
+│   ├── After: network.target, neuraldrive-ollama.service
 │   └── Wants: neuraldrive-ollama.service
 ├── neuraldrive-ollama.service
-│   ├── After: neuraldrive-gpu-detect.service
+│   ├── After: network.target, neuraldrive-gpu-detect.service
 │   └── Requires: neuraldrive-gpu-detect.service
 ├── neuraldrive-system-api.service
 │   └── After: network.target
 ├── neuraldrive-gpu-detect.service
 │   └── Before: neuraldrive-ollama.service
 └── neuraldrive-certs.service
+    ├── After: local-fs.target, network-online.target
     └── Before: neuraldrive-caddy.service
 ```
 
@@ -41,7 +42,7 @@ multi-user.target
 This is the most critical service in the application stack. It requires `neuraldrive-gpu-detect` to ensure that kernel modules for NVIDIA, AMD, or Intel GPUs are loaded before the Ollama binary attempts to initialize its compute provider.
 
 ### `neuraldrive-caddy`
-As the edge proxy, Caddy is the final piece of the puzzle. It requires `neuraldrive-certs` because it cannot bind to port 443 without valid certificate files in `/etc/neuraldrive/tls/`. It also `Wants` the backend services (WebUI and System API) so that systemd attempts to bring the whole stack up when the proxy is started.
+As the edge proxy, Caddy is the final piece of the puzzle. It requires `neuraldrive-certs` because it cannot bind to port 443 without valid certificate files in `/etc/neuraldrive/tls/`. It also requires `network-online.target` to ensure network interfaces are available before starting.
 
 ### `neuraldrive-gpu-monitor`
 This service runs independently of Ollama. It `Wants=neuraldrive-gpu-detect` but can run in a fallback mode using CPU-only monitoring if no GPU is found.
