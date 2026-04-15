@@ -1,0 +1,18 @@
+models:
+  small:
+    - name: "qwen2.5:3b"
+      size: "1.9GB"
+      ram_req: "8GB"
+    - name: "phi3:mini"
+      size: "2.3GB"
+      ram_req: "8GB"
+  medium:
+    - name: "llama3.1:8b"
+      size: "4.7GB"
+      ram_req: "16GB"
+      vram_req: "8GB"
+  large:
+    - name: "llama3.1:70b"
+      size: "40GB"
+      ram_req: "64GB"
+      vram_req: "24GB+"

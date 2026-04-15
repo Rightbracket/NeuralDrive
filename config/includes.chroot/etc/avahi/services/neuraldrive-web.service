@@ -1,0 +1,7 @@
+<service-group>
+  <name replace-wildcards="yes">NeuralDrive Web UI</name>
+  <service>
+    <type>_http._tcp</type>
+    <port>443</port>
+  </service>
+</service-group>

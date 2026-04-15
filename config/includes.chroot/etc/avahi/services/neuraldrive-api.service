@@ -1,0 +1,7 @@
+<service-group>
+  <name replace-wildcards="yes">NeuralDrive LLM API</name>
+  <service>
+    <type>_llm._tcp</type>
+    <port>8443</port>
+  </service>
+</service-group>
