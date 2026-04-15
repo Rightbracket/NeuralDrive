@@ -1,0 +1,11 @@
+output/
+*.iso
+model-staging/
+__pycache__/
+*.pyc
+.cache/
+*.egg-info/
+.lb/
+binary/
+chroot/
+.build/

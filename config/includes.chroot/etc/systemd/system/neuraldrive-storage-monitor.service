@@ -1,0 +1,19 @@
+[Unit]
+Description=NeuralDrive Storage Monitor
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/neuraldrive/storage-monitor.sh
+Restart=always
+RestartSec=30
+
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ReadOnlyPaths=/
+ReadWritePaths=/var/log/neuraldrive
+
+[Install]
+WantedBy=multi-user.target

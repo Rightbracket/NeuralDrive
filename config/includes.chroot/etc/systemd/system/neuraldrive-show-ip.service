@@ -1,0 +1,13 @@
+[Unit]
+Description=NeuralDrive IP Display on Boot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/neuraldrive/show-ip.sh
+StandardOutput=journal+console
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

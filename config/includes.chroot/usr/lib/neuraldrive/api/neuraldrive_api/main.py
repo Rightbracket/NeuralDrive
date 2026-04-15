@@ -2,6 +2,7 @@ import os
 import secrets
 import subprocess
 import shutil
+import time
 from pathlib import Path
 
 import psutil
@@ -82,7 +83,7 @@ def get_system_status():
             "models": models_usage._asdict() if models_usage else None,
             "total": total_usage._asdict() if total_usage else None,
         },
-        "uptime_seconds": int(psutil.time.time() - psutil.boot_time()),
+        "uptime_seconds": int(time.time() - psutil.boot_time()),
         "version": version,
     }
 

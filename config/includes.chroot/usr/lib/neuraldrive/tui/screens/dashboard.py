@@ -1,0 +1,94 @@
+from __future__ import annotations
+
+from textual.app import ComposeResult
+from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.screen import Screen
+from textual.widgets import Footer, Header, Static
+
+from utils import api_client, hardware
+from widgets.stats_box import StatsBox
+
+
+class DashboardScreen(Screen):
+    BINDINGS = [("r", "refresh", "Refresh")]
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with VerticalScroll():
+            yield Static("", id="dash-hostname")
+            with Horizontal(id="stats-panel"):
+                yield StatsBox("CPU", [("Usage", "…")], id="box-cpu")
+                yield StatsBox("Memory", [("Used", "…"), ("Total", "…")], id="box-mem")
+                yield StatsBox("Disk", [("Used", "…"), ("Free", "…")], id="box-disk")
+                yield StatsBox("GPU", [("Vendor", "…")], id="box-gpu")
+            yield Static("Loaded Models", classes="heading")
+            yield Vertical(id="loaded-models")
+            yield Static("Services", classes="heading")
+            yield Vertical(id="service-badges")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        self._refresh_system()
+        self.set_interval(2.0, self._refresh_system)
+        self._refresh_models()
+        self.set_interval(10.0, self._refresh_models)
+
+    def _refresh_system(self) -> None:
+        hostname = hardware.get_hostname()
+        ip = hardware.get_ip_address()
+        uptime = hardware.get_uptime()
+        self.query_one("#dash-hostname", Static).update(
+            f"  {hostname}  •  {ip}  •  up {uptime}"
+        )
+
+        cpu = hardware.get_cpu_percent()
+        self.query_one("#box-cpu", StatsBox).update_row("Usage", f"{cpu:.0f}%")
+
+        mem = hardware.get_memory_info()
+        box_mem = self.query_one("#box-mem", StatsBox)
+        box_mem.update_row("Used", f"{mem['used_gb']} GB")
+        box_mem.update_row("Total", f"{mem['total_gb']} GB")
+
+        disk = hardware.get_disk_info()
+        box_disk = self.query_one("#box-disk", StatsBox)
+        box_disk.update_row("Used", f"{disk['used_gb']} GB ({disk['percent']}%)")
+        box_disk.update_row("Free", f"{disk['free_gb']} GB")
+
+        gpu = hardware.get_gpu_info()
+        box_gpu = self.query_one("#box-gpu", StatsBox)
+        box_gpu.update_row("Vendor", gpu["vendor"])
+        if gpu["devices"]:
+            dev = gpu["devices"][0]
+            box_gpu.update_row(
+                "Vendor", f"{dev['name']}  {dev['temp_c']}°C  {dev['util_percent']}%"
+            )
+
+        container = self.query_one("#service-badges", Vertical)
+        container.remove_children()
+        for svc in hardware.NEURALDRIVE_SERVICES:
+            status = hardware.get_service_status(svc)
+            cls = "badge-online" if status == "active" else "badge-offline"
+            short = svc.replace("neuraldrive-", "")
+            container.mount(
+                Static(f"  {'●' if status == 'active' else '○'} {short}", classes=cls)
+            )
+
+    def _refresh_models(self) -> None:
+        self.app.call_later(self._refresh_models_async)
+
+    async def _refresh_models_async(self) -> None:
+        running = await api_client.list_running_models()
+        container = self.query_one("#loaded-models", Vertical)
+        container.remove_children()
+        if not running:
+            container.mount(Static("  No models loaded", classes="muted"))
+        else:
+            for m in running:
+                name = m.get("name", "unknown")
+                size_bytes = m.get("size", 0)
+                size_gb = f"{size_bytes / (1024**3):.1f} GB" if size_bytes else ""
+                container.mount(Static(f"  ● {name}  {size_gb}", classes="ok"))
+
+    def action_refresh(self) -> None:
+        self._refresh_system()
+        self._refresh_models()
