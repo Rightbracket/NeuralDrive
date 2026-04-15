@@ -1,0 +1,24 @@
+[Unit]
+Description=NeuralDrive GPU Monitoring Service
+After=neuraldrive-gpu-detect.service
+
+[Service]
+User=neuraldrive-monitor
+Group=neuraldrive-monitor
+SupplementaryGroups=video render
+ExecStart=/usr/lib/neuraldrive/gpu-monitor/venv/bin/gpu-hot --port 1312 --host 127.0.0.1
+Restart=always
+RestartSec=5
+
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=no
+DeviceAllow=/dev/nvidia* r
+DeviceAllow=/dev/dri/* r
+ReadOnlyPaths=/
+ReadWritePaths=/var/log/neuraldrive
+
+[Install]
+WantedBy=multi-user.target

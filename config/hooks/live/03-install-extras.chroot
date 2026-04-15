@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+curl -fsSL "https://caddyserver.com/api/download?os=linux&arch=amd64" -o /usr/local/bin/caddy
+chmod +x /usr/local/bin/caddy
+
+curl -fsSL https://ollama.com/download/ollama-linux-amd64 -o /usr/local/bin/ollama
+chmod +x /usr/local/bin/ollama

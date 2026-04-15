@@ -1,0 +1,12 @@
+[Unit]
+Description=NeuralDrive GPU Auto-Detection
+Before=neuraldrive-ollama.service
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/neuraldrive/gpu-detect.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

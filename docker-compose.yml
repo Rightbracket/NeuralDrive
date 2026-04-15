@@ -1,0 +1,8 @@
+services:
+  builder:
+    build: .
+    volumes:
+      - ./:/build
+      - ./output:/output
+    privileged: true
+    command: /build/build.sh

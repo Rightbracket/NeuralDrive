@@ -1,0 +1,30 @@
+#!/bin/sh
+set -e
+
+mkdir -p /etc/systemd/system/getty@tty1.service.d/
+cat > /etc/systemd/system/getty@tty1.service.d/autologin.conf << 'EOF'
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin neuraldrive-admin --noclear %I $TERM
+EOF
+
+cat >> /home/neuraldrive-admin/.profile << 'PROFILE'
+
+if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ]; then
+    exec /usr/local/bin/neuraldrive-tui
+fi
+PROFILE
+
+cat > /usr/lib/neuraldrive/show-ip.sh << 'IPSCRIPT'
+#!/bin/bash
+IP_ADDR=$(ip -4 route get 1 2>/dev/null | awk '{print $7; exit}')
+echo ""
+echo "============================================"
+echo "  NeuralDrive is ready!"
+echo "  Dashboard: https://${IP_ADDR:-[no network]}/"
+echo "  API:       https://${IP_ADDR:-[no network]}:8443/v1"
+echo "  mDNS:      https://neuraldrive.local/"
+echo "============================================"
+echo ""
+IPSCRIPT
+chmod +x /usr/lib/neuraldrive/show-ip.sh

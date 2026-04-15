@@ -1,0 +1,34 @@
+#!/bin/sh
+set -e
+
+systemctl disable ssh
+
+useradd -r -s /usr/sbin/nologin -u 901 neuraldrive-ollama
+useradd -r -s /usr/sbin/nologin -u 902 neuraldrive-webui
+useradd -r -s /usr/sbin/nologin -u 903 neuraldrive-caddy
+useradd -r -s /usr/sbin/nologin -u 904 neuraldrive-monitor
+useradd -r -s /usr/sbin/nologin -u 905 neuraldrive-api
+
+useradd -m -s /bin/bash -G sudo,video,render neuraldrive-admin
+
+echo "neuraldrive-admin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/neuraldrive-admin
+chmod 440 /etc/sudoers.d/neuraldrive-admin
+
+mkdir -p /etc/neuraldrive/tls \
+         /var/lib/neuraldrive/models/{manifests,blobs} \
+         /var/lib/neuraldrive/webui \
+         /var/log/neuraldrive \
+         /usr/lib/neuraldrive \
+         /run/neuraldrive
+
+systemctl enable neuraldrive-setup.service
+systemctl enable neuraldrive-gpu-detect.service
+systemctl enable neuraldrive-certs.service
+systemctl enable neuraldrive-ollama.service
+systemctl enable neuraldrive-webui.service
+systemctl enable neuraldrive-caddy.service
+systemctl enable neuraldrive-gpu-monitor.service
+systemctl enable neuraldrive-system-api.service
+systemctl enable neuraldrive-zram.service
+systemctl enable nftables.service
+systemctl enable avahi-daemon.service

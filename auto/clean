@@ -1,0 +1,3 @@
+#!/bin/sh
+# live-build auto/clean — called automatically by `lb clean`
+lb clean noauto "${@}"

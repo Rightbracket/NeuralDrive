@@ -1,0 +1,21 @@
+[Unit]
+Description=NeuralDrive System Management API
+After=network.target
+
+[Service]
+User=neuraldrive-api
+Group=neuraldrive-api
+EnvironmentFile=/etc/neuraldrive/api.env
+ExecStart=/usr/lib/neuraldrive/api/venv/bin/uvicorn neuraldrive_api.main:app --host 127.0.0.1 --port 3001
+Restart=always
+RestartSec=5
+WorkingDirectory=/usr/lib/neuraldrive/api
+
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true
+ReadWritePaths=/etc/neuraldrive /var/log/neuraldrive /var/lib/neuraldrive
+
+[Install]
+WantedBy=multi-user.target

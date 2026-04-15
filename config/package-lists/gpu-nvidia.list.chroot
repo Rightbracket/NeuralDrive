@@ -1,0 +1,6 @@
+# NVIDIA GPU Support (from bookworm-backports)
+nvidia-driver
+nvidia-kernel-dkms
+nvidia-cuda-toolkit
+nvidia-smi
+nvidia-persistenced

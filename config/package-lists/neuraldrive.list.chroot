@@ -1,0 +1,49 @@
+# Base System
+systemd
+systemd-sysv
+dbus
+network-manager
+iproute2
+iputils-ping
+curl
+wget
+ca-certificates
+gnupg
+sudo
+less
+vim-tiny
+htop
+pciutils
+usbutils
+lsof
+tmux
+
+# Filesystem Utilities
+btrfs-progs
+e2fsprogs
+dosfstools
+parted
+gdisk
+cryptsetup
+
+# Firmware
+linux-firmware
+firmware-misc-nonfree
+firmware-amd-graphics
+
+# Networking & Remote Access
+nftables
+openssh-server
+avahi-daemon
+fail2ban
+
+# Python (required for TUI, API, and management tools)
+python3
+python3-venv
+python3-pip
+
+# Build tools (for pip packages with C extensions)
+build-essential
+python3-dev
+
+# Caddy and Ollama are installed via hooks (03-install-extras.chroot)

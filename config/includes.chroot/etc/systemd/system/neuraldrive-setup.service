@@ -1,0 +1,11 @@
+[Unit]
+Description=NeuralDrive Initial Setup
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/neuraldrive/first-boot.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

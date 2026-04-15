@@ -1,0 +1,24 @@
+[Unit]
+Description=NeuralDrive Open WebUI Dashboard
+After=network.target neuraldrive-ollama.service
+Wants=neuraldrive-ollama.service
+
+[Service]
+User=neuraldrive-webui
+Group=neuraldrive-webui
+WorkingDirectory=/var/lib/neuraldrive/webui
+EnvironmentFile=/etc/neuraldrive/webui.env
+ExecStart=/usr/lib/neuraldrive/webui/venv/bin/open-webui serve
+Restart=always
+RestartSec=5
+
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true
+DeviceAllow=/dev/null rw
+ReadOnlyPaths=/usr/lib/neuraldrive/webui
+ReadWritePaths=/var/lib/neuraldrive/webui
+
+[Install]
+WantedBy=multi-user.target

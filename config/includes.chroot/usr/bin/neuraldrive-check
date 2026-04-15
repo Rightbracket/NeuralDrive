@@ -1,0 +1,25 @@
+#!/bin/bash
+source /run/neuraldrive/gpu.conf 2>/dev/null || true
+echo "NeuralDrive Status:"
+echo "-------------------"
+echo "Detected Mode: ${VENDOR:-unknown}"
+echo "Kernel: $(uname -r)"
+
+if [ "$VENDOR" = "NVIDIA" ]; then
+    nvidia-smi -L 2>/dev/null || echo "  nvidia-smi unavailable"
+fi
+
+if [ "$VENDOR" = "AMD" ]; then
+    rocm-smi --showproductname 2>/dev/null || echo "  rocm-smi unavailable"
+fi
+
+echo ""
+echo "Services:"
+for svc in neuraldrive-ollama neuraldrive-webui neuraldrive-caddy neuraldrive-gpu-monitor neuraldrive-system-api; do
+    STATUS=$(systemctl is-active "$svc" 2>/dev/null || echo "unknown")
+    echo "  $svc: $STATUS"
+done
+
+echo ""
+echo "Disk Usage:"
+df -h /var/lib/neuraldrive 2>/dev/null || echo "  persistence not mounted"

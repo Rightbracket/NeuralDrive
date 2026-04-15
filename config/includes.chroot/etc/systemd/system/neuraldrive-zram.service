@@ -1,0 +1,12 @@
+[Unit]
+Description=NeuralDrive zram Swap
+DefaultDependencies=no
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/neuraldrive/setup-zram.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

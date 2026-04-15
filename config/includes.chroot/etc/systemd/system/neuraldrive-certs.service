@@ -1,0 +1,14 @@
+[Unit]
+Description=NeuralDrive TLS Certificate Generation
+After=local-fs.target network-online.target
+Wants=network-online.target
+Before=neuraldrive-caddy.service
+
+[Service]
+Type=oneshot
+ExecCondition=/bin/sh -c '! test -f /etc/neuraldrive/tls/server.crt'
+ExecStart=/usr/lib/neuraldrive/generate-certs.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

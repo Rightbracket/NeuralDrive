@@ -1,0 +1,6 @@
+# Intel Arc GPU Support
+intel-compute-runtime
+intel-opencl-icd
+level-zero
+intel-media-va-driver-non-free
+intel-gpu-tools

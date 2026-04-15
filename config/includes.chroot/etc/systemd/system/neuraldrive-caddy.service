@@ -1,0 +1,27 @@
+[Unit]
+Description=NeuralDrive Caddy Reverse Proxy
+After=network-online.target neuraldrive-certs.service
+Requires=neuraldrive-certs.service
+Wants=network-online.target
+
+[Service]
+User=neuraldrive-caddy
+Group=neuraldrive-caddy
+EnvironmentFile=/etc/neuraldrive/caddy.env
+ExecStart=/usr/local/bin/caddy run --config /etc/neuraldrive/Caddyfile --adapter caddyfile
+ExecReload=/usr/local/bin/caddy reload --config /etc/neuraldrive/Caddyfile --adapter caddyfile
+Restart=always
+RestartSec=5
+
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true
+ReadOnlyPaths=/usr/local/bin/caddy
+ReadWritePaths=/var/log/neuraldrive
+
+[Install]
+WantedBy=multi-user.target

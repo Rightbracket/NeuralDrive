@@ -1,0 +1,17 @@
+#!/bin/sh
+# live-build auto/config — called automatically by `lb config`
+# Sets default configuration for NeuralDrive builds.
+
+lb config noauto \
+    --distribution bookworm \
+    --architectures amd64 \
+    --binary-images iso-hybrid \
+    --bootloaders "grub-efi,grub-pc" \
+    --debian-installer none \
+    --archive-areas "main contrib non-free non-free-firmware" \
+    --apt-recommends false \
+    --linux-packages "linux-image-amd64" \
+    --iso-volume "NeuralDrive" \
+    --iso-application "NeuralDrive Inference Server" \
+    --iso-publisher "NeuralDrive Project" \
+    "${@}"

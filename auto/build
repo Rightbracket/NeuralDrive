@@ -1,0 +1,3 @@
+#!/bin/sh
+# live-build auto/build — called automatically by `lb build`
+lb build noauto "${@}"

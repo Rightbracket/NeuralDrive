@@ -1,0 +1,4 @@
+# AMD ROCm GPU Support (from ROCm repository)
+rocm-hip-runtime
+rocm-opencl-runtime
+rocm-smi
