@@ -1,0 +1,43 @@
+neuraldrive:
+  version: "1.0"
+  name: "My Custom NeuralDrive"
+  hostname: "my-llm-server"
+
+  system:
+    kernel: "default"
+    locale: "en_US.UTF-8"
+    timezone: "UTC"
+    extra_packages:
+      - "htop"
+      - "vim"
+
+  gpu:
+    nvidia: true
+    amd: false
+    intel: false
+
+  models:
+    preload:
+      - "llama3.1:8b"
+      - "codestral:latest"
+    catalog: "default"
+
+  network:
+    ssh_enabled: false
+    default_ip: "dhcp"
+
+  security:
+    encrypt_persistent: false
+    api_key: ""
+
+  webui:
+    enabled: true
+    admin_email: "admin@example.com"
+    branding:
+      title: "Custom NeuralDrive"
+      logo: "assets/custom-logo.png"
+
+  output:
+    format: "iso-hybrid"
+    filename: "neuraldrive-custom.iso"
+    compression: "xz"
