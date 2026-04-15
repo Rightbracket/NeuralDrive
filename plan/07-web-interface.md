@@ -2,6 +2,15 @@
 
 NeuralDrive provides a primary web interface for chat and model management, alongside a monitoring dashboard for GPU performance. All traffic is consolidated through Caddy.
 
+### Companion Design Documents
+
+This file covers the infrastructure and deployment of the web stack. The full site design is detailed in:
+
+- **07a-web-design-system.md** — Visual design system: color palette, typography, components, Open WebUI theming constraints
+- **07b-web-site-architecture.md** — Information architecture: sitemap, navigation, layout, responsive breakpoints, user roles
+- **07c-web-page-designs.md** — ASCII wireframes for every page in both Open WebUI and the System Panel
+- **07d-web-interactions.md** — User flows, interaction patterns, error states, notifications, accessibility
+
 ## Section 1: Open WebUI Deployment
 
 Open WebUI serves as the primary user interface. It connects to the local Ollama instance and handles user authentication and chat history.
@@ -154,7 +163,7 @@ Access points are unified under the `neuraldrive.local` mDNS hostname.
 - **GPU Metrics**: `https://neuraldrive.local:8443/monitor`
 - **API Endpoints**: `https://neuraldrive.local:8443/v1`
 
-Custom CSS is injected into Open WebUI to match the NeuralDrive terminal aesthetic (dark mode, amber/green highlights).
+Open WebUI is configured with `WEBUI_NAME="NeuralDrive"`, a custom favicon via `STATIC_DIR`, and built-in dark mode enabled. CSS injection and white-labeling are not available in the community version (see 07a §7 for full constraints and options). The NeuralDrive terminal aesthetic (dark mode, amber/green highlights) applies fully to the custom System Panel.
 
 ## Section 6: Custom System Management Panel
 
