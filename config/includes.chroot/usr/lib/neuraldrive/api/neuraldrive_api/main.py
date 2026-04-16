@@ -10,13 +10,21 @@ from fastapi import FastAPI, Depends, HTTPException, Security
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-app = FastAPI(title="NeuralDrive System API", version="1.0.0")
+VERSION_FILE = "/etc/neuraldrive/version"
+
+
+def _read_version() -> str:
+    if os.path.exists(VERSION_FILE):
+        return Path(VERSION_FILE).read_text().strip()
+    return "dev"
+
+
+app = FastAPI(title="NeuralDrive System API", version=_read_version())
 auth_scheme = HTTPBearer()
 
 API_KEY_PATH = "/etc/neuraldrive/api.key"
 CERT_DIR = "/etc/neuraldrive/tls"
 GPU_CONF = "/run/neuraldrive/gpu.conf"
-VERSION_FILE = "/etc/neuraldrive/version"
 MODELS_DIR = "/var/lib/neuraldrive/models"
 DATA_DIR = "/var/lib/neuraldrive"
 

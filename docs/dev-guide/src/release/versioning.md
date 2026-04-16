@@ -8,27 +8,45 @@ NeuralDrive follows a structured versioning scheme to ensure that users and deve
 
 We use a variation of Calendar Versioning (CalVer) for our releases. This reflects the project's nature as a collection of upstream components (Debian, Ollama, WebUI) that change frequently.
 
-The format is: `YYYY.MM.Patch`
+The format is: `YYYY.MM.REVISION`
 - **YYYY**: The four-digit year of release.
 - **MM**: The two-digit month of release.
-- **Patch**: A sequential number for releases within the same month (starting at 0).
+- **REVISION**: The total number of releases ever made. This number never resets — it always increments, even across year/month boundaries.
 
-Example: `2026.04.1`
+Examples: `2026.04.1`, `2026.05.2`, `2027.01.53`
+
+The REVISION serves as a monotonically increasing release counter. Given any two NeuralDrive versions, the one with the higher REVISION is always newer, regardless of the date components.
 
 ## Version File
 
-The primary source of truth for the system version is the file `/etc/neuraldrive/version`. This file is generated during the build process and is used by the TUI, WebUI, and System API to display the version to the user.
+The primary source of truth for the system version is the file `/etc/neuraldrive/version`. This file is written during the build process (by `build.sh`) into `config/includes.chroot/etc/neuraldrive/version` and is used by the TUI, WebUI, and System API to display the version.
 
-## Tagging and Branching
+## Git Tags
 
-### Development
-The `main` branch always contains the latest stable development code. Commits to `main` are built as "Snapshot" releases and labeled with the date and short git hash (e.g., `dev-20260415-a1b2c3d`).
+Git tags are the source of truth for determining REVISION numbers. Tags follow the format `vYYYY.MM.REVISION` (e.g., `v2026.04.1`).
 
-### Release Tags
-When a stable release is ready:
-1. A new tag is created following the `vYYYY.MM.Patch` format.
-2. The GitHub CI pipeline automatically triggers a full production build.
-3. The resulting artifacts are attached to a GitHub Release.
+Use `scripts/tag-release.sh` to create the next release tag:
+
+```bash
+./scripts/tag-release.sh --dry-run   # preview
+./scripts/tag-release.sh             # create tag
+git push origin v2026.04.1           # push it
+```
+
+The script counts all existing `v*` tags and sets REVISION to count + 1.
+
+## Development Builds
+
+Commits on `main` that are not on an exact release tag produce dev versions labeled with the date and short git hash:
+
+```
+dev-2026.04.15-a1b2c3d
+```
+
+The build system resolves version automatically:
+1. `NEURALDRIVE_VERSION` env var (if set explicitly)
+2. Exact git tag on HEAD (stripped of `v` prefix)
+3. Dev fallback: `dev-YYYY.MM.DD-SHORTHASH`
 
 ## Component Versioning
 
@@ -37,7 +55,6 @@ While the appliance has its own version, the individual components are also trac
 - **Ollama**: Tracked via the binary version (e.g., 0.1.32).
 - **Open WebUI**: Tracked via the git tag or pip version.
 
-The System API provides an endpoint (`GET /system/version`) that returns the version strings for all core components.
+The System API provides an endpoint (`GET /system/status`) that returns the version string.
 
-> **Note**: Major architectural changes that break backward compatibility with older persistence partitions will be signaled by a "Breaking Change" notice in the release notes and potentially a change to the versioning format.
-
+> **Note**: Major architectural changes that break backward compatibility with older persistence partitions will be signaled by a "Breaking Change" notice in the release notes.

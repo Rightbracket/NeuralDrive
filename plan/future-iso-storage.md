@@ -39,8 +39,8 @@ The `ia` CLI (from the `internetarchive` Python package) handles uploads:
 ```bash
 pip install internetarchive
 
-ia upload neuraldrive-v1.0.0 output/neuraldrive-2026.04.iso \
-  --metadata="title:NeuralDrive v1.0.0" \
+ia upload neuraldrive-v2026.04.1 output/neuraldrive-2026.04.1.iso \
+  --metadata="title:NeuralDrive v2026.04.1" \
   --metadata="mediatype:software" \
   --metadata="collection:opensource" \
   --metadata="description:NeuralDrive Linux — boot a USB, get an LLM server" \
@@ -58,9 +58,9 @@ export IA_SECRET_ACCESS_KEY="your-secret-key"
 ## Versioning
 
 Internet Archive has no automatic versioning. Use a separate identifier per release:
-- `neuraldrive-v1.0.0`
-- `neuraldrive-v1.1.0`
-- `neuraldrive-v2.0.0`
+- `neuraldrive-v2026.04.1`
+- `neuraldrive-v2026.05.2`
+- `neuraldrive-v2027.01.53`
 
 Re-uploading a file with the same name to the same identifier clobbers the old version
 (backed up to `history/files/` in the item).
@@ -72,9 +72,9 @@ This can take minutes to hours. The item page will be live immediately but torre
 may not appear until derive completes.
 
 Each item gets:
-- Direct HTTP download: `https://archive.org/download/neuraldrive-v1.0.0/neuraldrive-2026.04.iso`
-- Torrent file: `https://archive.org/download/neuraldrive-v1.0.0/neuraldrive-v1.0.0_archive.torrent`
-- Item page: `https://archive.org/details/neuraldrive-v1.0.0`
+- Direct HTTP download: `https://archive.org/download/neuraldrive-v2026.04.1/neuraldrive-2026.04.1.iso`
+- Torrent file: `https://archive.org/download/neuraldrive-v2026.04.1/neuraldrive-v2026.04.1_archive.torrent`
+- Item page: `https://archive.org/details/neuraldrive-v2026.04.1`
 
 ## Rate limits
 
@@ -88,7 +88,7 @@ Each item gets:
 |-------|-------|-------|
 | `mediatype` | `software` | Cannot be changed after first upload |
 | `collection` | `opensource` | Public open-source software collection |
-| `title` | `NeuralDrive vX.Y.Z` | Human-readable title |
+| `title` | `NeuralDrive vYYYY.MM.REVISION` | Human-readable title |
 | `creator` | `NeuralDrive Project` | Author/org |
 | `subject` | `linux;distro;llm;inference;gpu` | Semicolon-separated tags |
 | `description` | Free-text | Supports basic HTML |

@@ -25,8 +25,4 @@ cat > /etc/neuraldrive/api.env << 'EOF'
 NEURALDRIVE_API_KEY_FILE=/etc/neuraldrive/api.key
 EOF
 
-cat > /etc/neuraldrive/version << 'EOF'
-dev-snapshot
-EOF
-
 echo "Default configuration files generated."

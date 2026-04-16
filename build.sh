@@ -11,6 +11,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${1:-}"
 OUTPUT_DIR="${SCRIPT_DIR}/output"
 
+# --- Derive version ---
+# CalVer: YYYY.MM.REVISION where REVISION = total release count (never resets)
+# Priority: NEURALDRIVE_VERSION env > exact git tag > dev fallback
+if [ -n "${NEURALDRIVE_VERSION:-}" ]; then
+    ND_VERSION="$NEURALDRIVE_VERSION"
+elif command -v git &>/dev/null && git describe --exact-match --tags HEAD 2>/dev/null | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+    ND_VERSION="$(git describe --exact-match --tags HEAD | sed 's/^v//')"
+else
+    ND_VERSION="dev-$(date +%Y.%m.%d)-$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
+fi
+echo "Version: ${ND_VERSION}"
+
 echo "============================================"
 echo "  NeuralDrive Image Builder"
 echo "============================================"
@@ -65,6 +77,10 @@ echo ""
 echo "Building NeuralDrive image..."
 echo "This will take 30-90 minutes depending on network speed and CPU."
 echo ""
+
+mkdir -p config/includes.chroot/etc/neuraldrive
+echo "$ND_VERSION" > config/includes.chroot/etc/neuraldrive/version
+
 lb build
 
 # --- Post-processing ---
@@ -78,8 +94,7 @@ if [ -z "$ISO_FILE" ]; then
     exit 1
 fi
 
-# Move ISO to output directory
-FINAL_NAME="neuraldrive-$(date +%Y.%m).iso"
+FINAL_NAME="neuraldrive-${ND_VERSION}.iso"
 mv "$ISO_FILE" "${OUTPUT_DIR}/${FINAL_NAME}"
 
 # Generate checksums
