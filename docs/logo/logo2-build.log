@@ -278,3 +278,25 @@ CHANGED: Cyan color + node positions + line endpoints + stroke widths.
 RESULT: Mean diff: 5.666. Pixels >50: 1.7%. Pixels >100: 0.4%.
   6.7% improvement from iteration 13. Cumulative: 86.4% reduction from initial 41.7.
 NEXT: Gradient fine-tuning, overlay parameter optimization, connector boundary improvements.
+
+=== Iteration 15 — 2026-04-16 ===
+CHANGED: Comprehensive color + structural optimization.
+  Navy color: #0c1a2e → #081634 (more blue, slightly darker) — BIGGEST win: −0.223
+  Brain fill: #152e64 → #0c2c66 — −0.199 (matches new navy better)
+  Inner border stroke: #0b265c → #06235e — −0.002
+  Body gradient: stop1 20%→18%, top color #1598ff→#1494ff, stop2 #0b88f2→#0b88f8,
+    stop3 #066cea→#066cf0 — −0.085 cumulative
+  Overlay: cx 330→327, cy 235→244, rx 90→85, ry 110→120 — −0.006
+  Metal face: x 278→277.5 — −0.019
+  Connector: y 445→445.5 — −0.003
+  Rotation: 44.1°→44.2° — −0.006
+  Body outline: rx 76→74 — −0.040
+  Blue interior: x 216.5→216.0, w 250→251 — −0.003
+  Brain overlay/mask/punch-out approaches all tested and FAILED:
+  - 100 gradient-fill ellipse combos, 3456 radial gradient combos — no improvement
+  - SVG mask ring approach = 8.834 (same as removing brain entirely)
+  - Solid brain fill remains the local optimum
+RESULT: Mean diff: 5.079. Pixels >50: 1.7%. Pixels >100: 0.4%.
+  16.3% improvement from iteration 13 (6.071). Cumulative: 87.8% from initial 41.7.
+  Navy color and brain fill were the two largest wins, together −0.422.
+NEXT: Diminishing returns on most parameters. Try connector boundary optimization, second-pass node/line tuning.
