@@ -1,6 +1,13 @@
-# NVIDIA GPU Support (from bookworm non-free)
-# nvidia-driver metapackage pulls in nvidia-kernel-dkms + userspace libs
-# nvidia-cuda-toolkit is NOT needed — Ollama bundles its own CUDA runtime
-nvidia-driver
+# NVIDIA GPU Support — Headless/Compute Only (no X11/GLX)
+# Debian bookworm has no nvidia-headless metapackage (Ubuntu-only).
+# These packages provide compute support without pulling X11/Xorg/GLX deps.
+# nvidia-cuda-toolkit is NOT needed — Ollama bundles its own CUDA runtime.
+dkms
+linux-headers-amd64
+nvidia-kernel-dkms
+nvidia-driver-bin
 nvidia-smi
 nvidia-persistenced
+firmware-nvidia-gsp
+libcuda1
+libnvidia-ml1

@@ -55,6 +55,7 @@ lb config \
     --archive-areas "main contrib non-free non-free-firmware" \
     --apt-recommends false \
     --linux-packages "linux-image" \
+    --compression xz \
     --iso-volume "NeuralDrive" \
     --iso-application "NeuralDrive Inference Server" \
     --iso-publisher "NeuralDrive Project"

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Fix GLX alternatives for headless NVIDIA server (no X11/GLX installed).
+# nvidia-driver-bin pulls glx-alternative-* which expect Mesa GLX to be installed,
+# but headless installs don't have libglx-mesa0. Register a stub alternative
+# so the 5020-update-glx-alternative hook doesn't fail.
+if [ ! -d /usr/lib/mesa-diverted ]; then
+    mkdir -p /usr/lib/mesa-diverted
+fi
+# Register the mesa-diverted alternative if not already present
+update-alternatives --install /usr/lib/glx glx /usr/lib/mesa-diverted 5 2>/dev/null || true
+echo "Mesa GLX alternative stub registered for headless server."
