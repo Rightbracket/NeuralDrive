@@ -1,6 +1,7 @@
 services:
   builder:
     build: .
+    platform: linux/amd64
     volumes:
       - ./:/build
       - ./output:/output
