@@ -12,7 +12,7 @@
       <stop offset="50%" stop-color="#b3cbf9"/>
       <stop offset="100%" stop-color="#c2deff"/>
     </linearGradient>
-    <filter id="brainBlur"><feGaussianBlur stdDeviation="2"/></filter>
+    <filter id="brainBlur"><feGaussianBlur stdDeviation="1.5"/></filter>
   </defs>
 
   <!-- Background -->
@@ -22,7 +22,7 @@
 
     <!-- Navy body outline -->
     <rect x="195.4" y="34.5"
-          width="292.0" height="444.0"
+          width="292.0" height="443.0"
           rx="74" fill="#081634"/>
 
     <!-- Navy connector outline -->
@@ -33,17 +33,17 @@
     <!-- Blue body interior (gradient) -->
     <rect x="216.0" y="55.0"
           width="251.0" height="398.0"
-          rx="50.0" fill="url(#bodyGrad)" stroke="#06235e" stroke-width="1.5"/>
+          rx="51.0" fill="url(#bodyGrad)" stroke="#06235e" stroke-width="1.5"/>
 
     <!-- Metal connector face -->
     <rect x="277.5" y="473.0"
-          width="140.0" height="103.0"
+          width="141.0" height="103.0"
           rx="3" fill="url(#metalGrad)"/>
 
     <!-- Navy contact squares -->
-    <rect x="292.4" y="505.5"
+    <rect x="293.4" y="505.5"
           width="39.2" height="35.6" fill="#081634"/>
-    <rect x="363.1" y="506.0"
+    <rect x="364.1" y="506.0"
           width="38.5" height="35.1" fill="#081634"/>
 
     <!-- Brain zone darkening overlay -->
@@ -55,38 +55,38 @@
     </g>
 
     <!-- Neural network connections -->
-    <line x1="343.4" y1="283.9" x2="372.5" y2="342.0"
+    <line x1="344.4" y1="282.9" x2="371.5" y2="341.5"
           stroke="#00f9fa" stroke-width="7.6" stroke-linecap="round"/>
-    <line x1="343.8" y1="186.5" x2="339.9" y2="249.3"
+    <line x1="342.8" y1="185.5" x2="339.9" y2="249.3"
           stroke="#00f9fa" stroke-width="6.9" stroke-linecap="round"/>
-    <line x1="326.0" y1="283.0" x2="293.0" y2="331.5"
+    <line x1="325.0" y1="284.0" x2="293.5" y2="330.5"
           stroke="#00f9fa" stroke-width="7.0" stroke-linecap="round"/>
-    <line x1="360.2" y1="176.8" x2="401.3" y2="205.7"
+    <line x1="359.2" y1="176.8" x2="402.3" y2="205.7"
           stroke="#00f9fa" stroke-width="6.5" stroke-linecap="round"/>
-    <line x1="386.5" y1="301.2" x2="385.2" y2="341.7"
+    <line x1="387.5" y1="300.2" x2="384.2" y2="340.7"
           stroke="#00f9fa" stroke-width="7.9" stroke-linecap="round"/>
-    <line x1="320.3" y1="273.5" x2="281.8" y2="287.8"
+    <line x1="320.8" y1="273.0" x2="282.8" y2="288.8"
           stroke="#00f9fa" stroke-width="6.4" stroke-linecap="round"/>
-    <line x1="413.2" y1="235.8" x2="395.1" y2="270.3"
+    <line x1="412.2" y1="234.8" x2="396.1" y2="269.8"
           stroke="#00f9fa" stroke-width="6.7" stroke-linecap="round"/>
-    <line x1="323.5" y1="164.1" x2="287.5" y2="165.6"
+    <line x1="324.5" y1="165.1" x2="288.5" y2="166.6"
           stroke="#00f9fa" stroke-width="6.5" stroke-linecap="round"/>
-    <line x1="394.5" y1="157.0" x2="362.5" y2="161.2"
+    <line x1="393.5" y1="156.0" x2="361.5" y2="162.2"
           stroke="#00f9fa" stroke-width="6.7" stroke-linecap="round"/>
-    <line x1="273.7" y1="311.3" x2="276.4" y2="329.1"
+    <line x1="273.7" y1="311.3" x2="277.4" y2="328.6"
           stroke="#00f9fa" stroke-width="6.3" stroke-linecap="round"/>
 
     <!-- Neural network nodes -->
     <circle cx="379.6" cy="361.5" r="19.5" fill="#00f9fa"/>
     <circle cx="418.2" cy="216.4" r="19.0" fill="#00f9fa"/>
-    <circle cx="343.0" cy="167.4" r="19.0" fill="#00f9fa"/>
+    <circle cx="342.5" cy="167.4" r="19.0" fill="#00f9fa"/>
     <circle cx="337.5" cy="265.6" r="17.0" fill="#00f9fa"/>
-    <circle cx="284.3" cy="344.9" r="16.5" fill="#00f9fa"/>
-    <circle cx="270.5" cy="169.0" r="16.0" fill="#00f9fa"/>
-    <circle cx="266.6" cy="235.6" r="15.5" fill="#00f9fa"/>
-    <circle cx="390.8" cy="284.3" r="15.5" fill="#00f9fa"/>
+    <circle cx="284.3" cy="345.4" r="16.5" fill="#00f9fa"/>
+    <circle cx="270.0" cy="169.5" r="16.0" fill="#00f9fa"/>
+    <circle cx="266.6" cy="236.1" r="15.5" fill="#00f9fa"/>
+    <circle cx="390.8" cy="283.8" r="15.0" fill="#00f9fa"/>
     <circle cx="268.4" cy="296.3" r="15.5" fill="#00f9fa"/>
-    <circle cx="404.6" cy="152.9" r="10.5" fill="#00f9fa"/>
+    <circle cx="404.6" cy="152.4" r="10.5" fill="#00f9fa"/>
 
   </g>
 </svg>

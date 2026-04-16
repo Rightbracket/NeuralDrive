@@ -300,3 +300,17 @@ RESULT: Mean diff: 5.079. Pixels >50: 1.7%. Pixels >100: 0.4%.
   16.3% improvement from iteration 13 (6.071). Cumulative: 87.8% from initial 41.7.
   Navy color and brain fill were the two largest wins, together −0.422.
 NEXT: Diminishing returns on most parameters. Try connector boundary optimization, second-pass node/line tuning.
+
+=== Iteration 16 — 2026-04-16 ===
+CHANGED: Second-pass node/line optimization + structural fine-tuning.
+  Second-pass nodes: 6/10 nodes shifted 0.5px, 5.079→5.073
+  Second-pass lines: all 10 lines shifted 0.5-1.0px, 5.073→4.984 (broke sub-5.0!)
+  Brain blur: stdDev 2→1.5 (−0.001)
+  Contact squares: +1px right each (matching previous connector shift pattern)
+  Body outline: height 444→443 (−0.024)
+  Metal face: width 140→141, x 278→277.5 (−0.026)
+  Interior rx: 50→51 (−0.003)
+RESULT: Mean diff: 4.914. Pixels >50: 1.5%. Pixels >100: 0.3%.
+  Cumulative: 88.2% reduction from initial 41.7.
+  Line repositioning was the biggest win (−0.089).
+NEXT: Deeply in diminishing returns. Most parameters optimized within ±1px and ±4 color steps.
