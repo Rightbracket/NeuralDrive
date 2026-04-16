@@ -133,3 +133,27 @@ RESULT: Mean diff: 8.938 (from 9.084). Pixels >50: 2.6%. Pixels >100: 1.1%.
   Diminishing returns — most tractable improvements now exhausted.
   Top error hotspots: connector bottom tip (119/px), metal-navy transition (100/px).
 NEXT: Assess if further iteration is worthwhile or if current quality is sufficient.
+
+=== Iteration 9 — 2026-04-16 ===
+CHANGED: Metal face repositioning + connector height + body shift + brain darkening overlay.
+  Metal connector face:
+  - Old: x=272, y=480, w=148, h=96
+  - New: x=278, y=473, w=140, h=103
+  - Metal starts 7px higher (better coverage of original metal zone at upright y=450-500)
+  - Metal narrower by 8px (reduces overshoot into navy edges)
+  - Found by analyzing >80 diff pixels: 1763 metal pixels rendered as navy (metal too small)
+  Navy connector:
+  - Height: 148 → 151 (extends 3px further to cover connector tip)
+  - Swept 140-155; 151 optimal (152 was better alone but 151 + body shift = best combo)
+  Body outline:
+  - y shifted +1 (33 → 34) — small but consistent 0.1 improvement across all combos
+  Brain zone darkening overlay:
+  - NEW: <ellipse cx=330 cy=235 rx=90 ry=110 fill=#020e28 opacity=0.39>
+  - Placed between blue gradient and brain path (drawn before brain)
+  - Darkens the gradient in the brain zone by ~40%, matching original's dark brain-edge antialiasing
+  - This is the single biggest improvement this iteration: 7.842 → 6.966 (−0.876)
+  - Swept 1500+ configurations: opacity, color, size, position
+RESULT: Mean diff: 6.966 (from 8.938). Pixels >50: 2.2%. Pixels >100: 0.6%.
+  22% improvement in mean diff this iteration.
+  Cumulative: 83% reduction from initial 41.7 to 7.0.
+NEXT: Continue pushing — try more structural changes, gradient refinement, individual node tuning.

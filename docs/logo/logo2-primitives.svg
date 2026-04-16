@@ -21,13 +21,13 @@
   <g transform="rotate(44.0, 335.8, 249.1)">
 
     <!-- Navy body outline -->
-    <rect x="195.0" y="33.0"
+    <rect x="195.0" y="34.0"
           width="292.0" height="445.0"
           rx="75.0" fill="#0c1a2e"/>
 
     <!-- Navy connector outline -->
     <rect x="255.0" y="445.0"
-          width="182.0" height="148.0"
+          width="182.0" height="151.0"
           rx="3" fill="#0c1a2e"/>
 
     <!-- Blue body interior (gradient) -->
@@ -36,8 +36,8 @@
           rx="50.0" fill="url(#bodyGrad)"/>
 
     <!-- Metal connector face -->
-    <rect x="272.0" y="480.0"
-          width="148.0" height="96.0"
+    <rect x="278.0" y="473.0"
+          width="140.0" height="103.0"
           rx="3" fill="url(#metalGrad)"/>
 
     <!-- Navy contact squares -->
@@ -45,6 +45,9 @@
           width="39.2" height="35.6" fill="#0c1a2e"/>
     <rect x="362.1" y="506.0"
           width="38.5" height="35.1" fill="#0c1a2e"/>
+
+    <!-- Brain zone darkening overlay -->
+    <ellipse cx="330" cy="235" rx="90" ry="110" fill="#020e28" opacity="0.39"/>
 
     <!-- Brain silhouette (traced path) -->
     <g transform="translate(0,700) scale(0.286885,-0.286885)" filter="url(#brainBlur)">
