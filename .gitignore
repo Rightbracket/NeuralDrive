@@ -9,3 +9,11 @@ __pycache__/
 binary/
 chroot/
 .build/
+cache/
+config/binary
+config/bootstrap
+config/chroot
+config/common
+config/source
+config/hooks/normal/
+config/package-lists/live.list.chroot

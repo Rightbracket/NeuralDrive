@@ -16,4 +16,6 @@ RUN apt-get update && apt-get install -y \
     && chmod +x /usr/bin/yq \
     && rm -rf /var/lib/apt/lists/*
 
+COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
 WORKDIR /build

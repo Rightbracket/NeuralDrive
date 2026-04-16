@@ -3,7 +3,12 @@ services:
     build: .
     platform: linux/amd64
     volumes:
-      - ./:/build
+      - ./:/src:ro
       - ./output:/output
-    privileged: true
-    command: /build/build.sh
+    cap_add:
+      - SYS_ADMIN
+      - MKNOD
+      - SYS_CHROOT
+    security_opt:
+      - apparmor:unconfined
+    command: docker-entrypoint.sh
