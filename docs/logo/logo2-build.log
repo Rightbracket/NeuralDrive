@@ -157,3 +157,35 @@ RESULT: Mean diff: 6.966 (from 8.938). Pixels >50: 2.2%. Pixels >100: 0.6%.
   22% improvement in mean diff this iteration.
   Cumulative: 83% reduction from initial 41.7 to 7.0.
 NEXT: Continue pushing — try more structural changes, gradient refinement, individual node tuning.
+
+=== Iteration 10 — 2026-04-16 ===
+CHANGED: Multi-parameter optimization — gradient, overlay, node positions, rotation, blur, body rx.
+  Body gradient:
+  - Top stop brightened: #1290f5 → #1698ff (compensates for overlay darkening)
+  Overlay color:
+  - Changed from #020e28 to #010a20 (slightly darker/bluer)
+  Node position shifts (5 nodes micro-adjusted +1-2px each):
+  - Node 0: (+1,+1), Node 1: (+1,0), Node 3: (0,+2), Node 4: (+1,+1), Node 7: (+1,+1)
+  - Connection endpoints updated to match shifted nodes
+  - Combined shifts: −0.043 from 6.876 → 6.834
+  Rotation angle:
+  - 44.0° → 44.1° — best angle in fine sweep (tested 44.0-44.2 in 0.02 steps)
+  - Improvement: −0.017 alone
+  Brain blur:
+  - stdDeviation 4 → 3 (sharper brain edge matches original better at this overlay strength)
+  - Improvement: −0.006 alone
+  Body outline rx:
+  - 75 → 76 (marginal corner rounding adjustment)
+  - Improvement: −0.006 alone
+  All three changes stack additively.
+  Also tested but no improvement:
+  - Radial gradient overlay (no better than flat fill at this scale)
+  - 5-stop body gradient (diminishing returns on gradient stops)
+  - Overlay ellipse position/size tuning (−0.001 at best)
+  - Background, navy, body interior dimension sweeps (all at local optimum)
+  - Rotation center offset at 44.1° (no improvement)
+RESULT: Mean diff: 6.809 (from 6.966). Pixels >50: 2.2%. Pixels >100: 0.6%.
+  2.3% improvement this iteration. Cumulative: 84% reduction from initial 41.7.
+  SVG: ~5KB, 92 lines.
+  Diminishing returns — most parameter sweeps show <0.01 improvement potential.
+NEXT: Assess remaining error budget and decide whether to continue.
