@@ -1,0 +1,74 @@
+=== Iteration 1 — 2026-04-16 ===
+CHANGED: Brain silhouette completely reworked.
+  - Used scipy optimization to fit 8 circles + fill rect to actual brain mask (98.2% coverage)
+  - Fill rect: 193.5×275 at (241.5, 112.2), rx=20
+  - 8 circles with radii 28-37, well-separated, creating subtle bumps
+  - Previous approach: manually placed circles based on radial boundary peaks — resulted in Mickey Mouse ears (too big) or gear-tooth bumps (too deep)
+  - Optimization approach: rasterized circle union vs actual brain mask, Nelder-Mead minimization of symmetric difference with separation penalty
+RESULT: Brain shape now closely matches original — subtle bumps on a rectangular base, contained within blue body.
+  Mean pixel diff: 41.7 (from 44.9 initial). Pixels >100 diff: 10.0% (from 12.7%).
+  Still wrong: body gradient too light/flat, connector dimensions rough, node positions slightly off
+NEXT: Fix body gradient — currently too light/pastel. Original has richer deeper blue ranging from bright blue (top) to deep blue (bottom).
+
+=== Iteration 2 — 2026-04-16 ===
+CHANGED: Body gradient stops corrected.
+  - Old: #5bb5ff → #1a60b8 (too pastel/desaturated)
+  - New: #1290f5 → #0165e6 (matches measured gradient from raw image pixels)
+  - Measured by sampling blue body pixels grouped by upright y-coordinate
+RESULT: Body color now closely matches original. Mean diff: 36.2 (from 41.7). Pixels >50: 18% (from 27%).
+  Still wrong: connector dimensions/position, gradient still slightly bright at top, node positions
+NEXT: Fix connector — measure actual navy outline, metal face, and contact positions from original.
+
+=== Iteration 3 — 2026-04-16 ===
+CHANGED: Connector and metal face fixed.
+  - Navy connector: 182×152 at x=255, y=445 (measured width 182px stable from y=470-590)
+  - Metal face: 140×80 at y=470 (measured width 140, extended height to cover contacts)
+  - Metal gradient: updated to measured #8da8cc → #9dbce8 (blue-tinted grey, not pure grey)
+RESULT: Mean diff: 32.3 (from 36.2). Connector proportions now match.
+  Remaining: body outline edges slightly off, brain top bumps, node positions, gradient brightness
+NEXT: Adjust body outline size (measured 293.9 wide, currently 277.7) and fine-tune node positions.
+
+=== Iteration 4 — 2026-04-16 ===
+CHANGED: Major geometry overhaul — body outline, blue interior, and node refinements.
+  - Navy body outline: height 420→445, rx 32→75 (measured from top corner profile)
+    Body bottom at y=478 with rx=75 creates smooth body-connector transition matching original
+    Top corners now match measured profile (full width reached at y≈108, vs y≈65 with rx=32)
+  - Blue body interior: repositioned to center at (341, 254), rx 37.5→50 (measured from top corner fitting)
+  - Metal gradient: changed from horizontal to vertical, updated colors to #9abae6→#98b8e5→#96aecd
+  - Node radii: updated all 10 nodes to match measured values (avg +1.5px, e.g. center node 16→18)
+  - Node positions: fine-tuned to match measured centroids (within 1px)
+  - Connection 3 (center→bottom-left): fixed endpoint from (330, 342) to (292, 331) — was 47px from node 5
+  - Brain fill rect: narrowed from 193.5×275 to 181×262 to reduce 17k pixel brain excess
+RESULT: Mean diff: 11.9 (from 32.3). Pixels >50: 12.9% (from 18%). Pixels >100: 4.7%.
+  73% reduction in mean diff from initial. Body-connector transition now smooth.
+  Remaining: body-connector junction still has ~5% area with >100 diff (fundamental rx limitation),
+  brain shape has anti-aliasing gap (hard edges vs original's blended boundaries),
+  blue body gradient well-matched (channel diffs R=4, G=5, B=7).
+NEXT: Consider adding missing connection, fine-tune remaining brain bumps, final polish.
+
+=== Iteration 5 — 2026-04-16 ===
+CHANGED: Brain silhouette visual overhaul — prioritized shape fidelity over pixel diff metric.
+  - Brain circles: scaled all 8 radii by 1.30× (28-37 → 37-48)
+    Larger circles overlap more, creating a visible brain-like outline with organic bumps
+  - Fill rect: narrowed from 181×262 to 100×260, recentered on brain center (288, 114)
+    Narrow fill rect acts as spine connecting circle bumps, not dominating shape
+  - Previous issue: fill rect at 181px wide made brain look like a dark rectangle
+    Brain's most distinctive feature (organic bumpy outline) was completely invisible
+  - Analysis showed: mean pixel diff favored larger fill rect (brain darkblue close to blue gradient
+    in RGB space), but VISUAL quality was terrible — no human would call it a brain shape
+  - Tested 168 configurations (circle scale × fill rect size × fill rect position)
+  - Also tested but rejected:
+    - Metal face height fix (80→25): actually made diff worse because metal color is closer to
+      background than navy in the body-connector gap area
+    - Body ry variations: ry=75 already optimal
+    - Body width variations: w=292 already optimal
+    - Rotation angle/center fine-tuning: 44.0° at (335.8, 249.1) already optimal
+    - Junction masking rects: hurt more than helped (masked correct body corners)
+RESULT: Mean diff: 13.2 (from 11.9). Pixels >50: 8.2%. Pixels >100: 2.0%.
+  Mean diff increased 1.3 points but brain shape is now recognizably brain-like.
+  Body shape, gradient, nodes, connections unchanged — still match well.
+  SVG: 4.1KB, 95 lines. All geometric primitives.
+  Remaining: body-connector junction gap (fundamental rect+rotation limitation),
+  brain edge softness (hard circles vs original's anti-aliased blended edges),
+  minor node/connection position offsets (< 3px).
+NEXT: Assess if current state passes "same logo" visual test.

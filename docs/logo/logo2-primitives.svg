@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 601 600" width="601" height="600">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#1290f5"/>
+      <stop offset="100%" stop-color="#0165e6"/>
+    </linearGradient>
+    <linearGradient id="metalGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#9abae6"/>
+      <stop offset="80%" stop-color="#98b8e5"/>
+      <stop offset="100%" stop-color="#96aecd"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="601" height="600" fill="#f7f7f7"/>
+
+  <g transform="rotate(44.0, 335.8, 249.1)">
+
+    <!-- Navy body outline -->
+    <rect x="195.0" y="33.0"
+          width="292.0" height="445.0"
+          rx="75.0" fill="#0c1a2e"/>
+
+    <!-- Navy connector outline -->
+    <rect x="255.0" y="445.0"
+          width="182.0" height="152.0"
+          rx="10" fill="#0c1a2e"/>
+
+    <!-- Blue body interior (gradient) -->
+    <rect x="216.0" y="55.0"
+          width="250.0" height="398.0"
+          rx="50.0" fill="url(#bodyGrad)"/>
+
+    <!-- Metal connector face -->
+    <rect x="276.0" y="470.0"
+          width="140.0" height="80.0"
+          rx="3" fill="url(#metalGrad)"/>
+
+    <!-- Navy contact squares -->
+    <rect x="291.4" y="505.5"
+          width="39.2" height="35.6" fill="#0c1a2e"/>
+    <rect x="362.1" y="506.0"
+          width="38.5" height="35.1" fill="#0c1a2e"/>
+
+    <!-- Brain fill rect (narrow spine connecting circle bumps) -->
+    <rect x="288.0" y="114.0"
+          width="100.0" height="260.0"
+          rx="20" fill="#143250"/>
+
+    <!-- Brain bump circles (8 overlapping circles, 1.30x scale) -->
+    <circle cx="245.1" cy="96.6" r="37.1" fill="#143250"/>
+    <circle cx="377.4" cy="134.9" r="39.0" fill="#143250"/>
+    <circle cx="424.3" cy="219.2" r="39.9" fill="#143250"/>
+    <circle cx="423.6" cy="293.3" r="41.0" fill="#143250"/>
+    <circle cx="378.6" cy="368.0" r="46.4" fill="#143250"/>
+    <circle cx="301.5" cy="364.9" r="47.8" fill="#143250"/>
+    <circle cx="265.7" cy="300.7" r="38.4" fill="#143250"/>
+    <circle cx="284.3" cy="175.1" r="37.6" fill="#143250"/>
+
+    <!-- Neural network connections -->
+    <line x1="342.4" y1="282.9" x2="372.5" y2="341.5"
+          stroke="#00d6e8" stroke-width="7.6" stroke-linecap="round"/>
+    <line x1="344.8" y1="187.5" x2="340.9" y2="248.3"
+          stroke="#00d6e8" stroke-width="7.9" stroke-linecap="round"/>
+    <line x1="327.0" y1="280.0" x2="292.0" y2="331.0"
+          stroke="#00d6e8" stroke-width="8.0" stroke-linecap="round"/>
+    <line x1="361.2" y1="175.8" x2="400.3" y2="206.2"
+          stroke="#00d6e8" stroke-width="7.5" stroke-linecap="round"/>
+    <line x1="384.5" y1="299.2" x2="385.2" y2="341.7"
+          stroke="#00d6e8" stroke-width="7.9" stroke-linecap="round"/>
+    <line x1="319.3" y1="270.5" x2="280.8" y2="286.8"
+          stroke="#00d6e8" stroke-width="7.4" stroke-linecap="round"/>
+    <line x1="413.2" y1="236.8" x2="393.6" y2="268.3"
+          stroke="#00d6e8" stroke-width="7.7" stroke-linecap="round"/>
+    <line x1="322.5" y1="163.1" x2="286.5" y2="164.6"
+          stroke="#00d6e8" stroke-width="7.5" stroke-linecap="round"/>
+    <line x1="395.5" y1="158.0" x2="361.5" y2="160.2"
+          stroke="#00d6e8" stroke-width="7.7" stroke-linecap="round"/>
+    <line x1="274.7" y1="310.8" x2="274.4" y2="329.1"
+          stroke="#00d6e8" stroke-width="7.3" stroke-linecap="round"/>
+
+    <!-- Neural network nodes -->
+    <circle cx="378.6" cy="361.0" r="19.5" fill="#00d6e8"/>
+    <circle cx="417.7" cy="216.4" r="19.0" fill="#00d6e8"/>
+    <circle cx="342.5" cy="166.9" r="19.0" fill="#00d6e8"/>
+    <circle cx="337.0" cy="265.1" r="18.0" fill="#00d6e8"/>
+    <circle cx="283.3" cy="344.4" r="16.0" fill="#00d6e8"/>
+    <circle cx="270.5" cy="168.5" r="15.5" fill="#00d6e8"/>
+    <circle cx="266.1" cy="235.1" r="15.0" fill="#00d6e8"/>
+    <circle cx="390.3" cy="283.8" r="16.0" fill="#00d6e8"/>
+    <circle cx="267.9" cy="295.8" r="15.5" fill="#00d6e8"/>
+    <circle cx="404.1" cy="152.4" r="10.5" fill="#00d6e8"/>
+
+  </g>
+</svg>
