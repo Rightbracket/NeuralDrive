@@ -1,5 +1,9 @@
 name: NeuralDrive Build & Test
-on: [push, workflow_dispatch]
+on:
+  pull_request:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build-iso:
@@ -17,6 +21,7 @@ jobs:
           tests/test-boot.sh output/neuraldrive-*.iso
 
       - name: Upload Artifact
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: neuraldrive-iso
