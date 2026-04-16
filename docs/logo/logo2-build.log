@@ -253,3 +253,28 @@ CHANGED: Body outline + interior sub-pixel repositioning.
 RESULT: Mean diff: 6.071. Pixels >50: 1.9%. Pixels >100: 0.4%.
   Very small gains from sub-pixel body alignment. Deeply in diminishing returns for positional tuning.
 NEXT: Try brain stroke approaches (mask, compound path, two-layer) to fix the over-darkened brain interior.
+
+=== Iteration 14 — 2026-04-16 ===
+CHANGED: Cyan color + node positions + line endpoints + stroke widths.
+  Cyan color: #00e0ee → #00f9fa
+  - Original node centers measure ~(1,252,252) = #00FCFC, was rendering (0,224,238)
+  - Fine search over G=244-255, B=246-255 found (0,249,250) = #00f9fa optimal
+  - 6.071→5.829 (−0.242) from color alone
+  Node positions: all 10 nodes individually grid-searched (±2px cx/cy, ±1.5 r):
+  - Adjustments mostly 0.5px shifts, a few radius changes
+  - 5.829→5.801 (−0.028) cumulative
+  Line endpoints: all 10 connection lines grid-searched (±1px per endpoint):
+  - Several lines shifted 0.5-1.0px in various directions
+  - 5.801→5.669 (−0.132) cumulative
+  Stroke widths: lines 0,1 increased by 1.0px
+  - 5.669→5.666 (−0.003) marginal
+  Brain approaches tried and FAILED (no improvement found):
+  - Two-layer: gradient ellipse above brain (100+ combos) — no improvement
+  - Radial gradient punch-out: feathered blue center (3456 combos) — no improvement
+  - SVG mask ring approach: brain outline white + black center ellipse — gave 8.834 (=no brain)
+  - The mask approach is equivalent to removing the brain entirely; solid fill is the local optimum
+  Analysis confirmed: original brain interior is BETWEEN solid fill and no fill, but solid fill
+  wins overall because edges need to be dark.
+RESULT: Mean diff: 5.666. Pixels >50: 1.7%. Pixels >100: 0.4%.
+  6.7% improvement from iteration 13. Cumulative: 86.4% reduction from initial 41.7.
+NEXT: Gradient fine-tuning, overlay parameter optimization, connector boundary improvements.
