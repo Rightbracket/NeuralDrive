@@ -89,3 +89,29 @@ RESULT: Mean diff: 10.304 (from 13.2). Pixels >50: 7.5% (from 8.2%). Pixels >100
   Error breakdown: cyan nodes (largest total error), blue gradient (large area, low per-pixel),
   metal connector (small area, high per-pixel), navy outline edges.
 NEXT: Fine-tune node positions, connection endpoints, body outline rx/dims, body edge transition.
+
+=== Iteration 7 — 2026-04-16 ===
+CHANGED: Three targeted optimizations — metal gradient, body gradient, brain edge softening.
+  Metal gradient:
+  - Old: #b0c4e2 → #9ab2d4 → #8098b8 (too dark, rendered mean RGB 32-55 points below original)
+  - New: #a0baea → #adc6f3 → #bad2fc (dark-to-light vertical gradient)
+  - Measured original metal: median (153,184,230), P10 (150,176,190), P90 (170,188,233)
+  - Swept 125+ color combinations, found upward gradient matches better than flat fill
+  Body gradient:
+  - Old: 2-stop #1290f5 → #0165e6
+  - New: 4-stop #1290f5 → #0a86f0 (23%) → #0562e0 (42%) → #0165e6
+  - Mid-stops darken the transition zone where brain overlaps gradient
+  - Swept 500+ configurations across position and color
+  Brain edge blur:
+  - Added <feGaussianBlur stdDeviation="4"> to brain path group
+  - stdDev=4 in potrace coords ≈ 1.1px in output — matches original's anti-aliased edges
+  - Eliminates hard brain boundary vs original's smooth blend
+  Connection lines:
+  - All stroke-widths reduced by 1.0px (7.3-8.0 → 6.3-7.0)
+  - Marginal improvement, lines were slightly too thick
+RESULT: Mean diff: 9.084 (from 10.304). Pixels >50: 2.6% (from 7.5%). Pixels >100: 1.1%.
+  11.8% improvement in mean diff from iteration 6.
+  Cumulative: 78% reduction from initial 41.7 to 9.1.
+  SVG: ~5KB with blur filter, traced brain path, 4-stop gradient.
+  Remaining error dominated by: blue body (brain-edge anti-aliasing), navy edges, background spillover.
+NEXT: Further gradient fine-tuning, body outline edge effects, node position micro-adjustments.
