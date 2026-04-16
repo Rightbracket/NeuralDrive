@@ -11,6 +11,8 @@
 #   NEURALDRIVE_SHELL=1   Set up workspace then drop to interactive shell
 set -euo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+
 if [[ "${NEURALDRIVE_DEBUG:-}" == "1" ]]; then
     set -x
 fi

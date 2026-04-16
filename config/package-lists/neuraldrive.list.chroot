@@ -27,7 +27,7 @@ gdisk
 cryptsetup
 
 # Firmware
-linux-firmware
+firmware-linux-nonfree
 firmware-misc-nonfree
 firmware-amd-graphics
 

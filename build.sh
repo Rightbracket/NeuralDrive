@@ -54,7 +54,7 @@ lb config \
     --debian-installer none \
     --archive-areas "main contrib non-free non-free-firmware" \
     --apt-recommends false \
-    --linux-packages "linux-image-amd64" \
+    --linux-packages "linux-image" \
     --iso-volume "NeuralDrive" \
     --iso-application "NeuralDrive Inference Server" \
     --iso-publisher "NeuralDrive Project"

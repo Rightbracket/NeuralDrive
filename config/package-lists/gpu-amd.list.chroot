@@ -1,4 +1,4 @@
-# AMD ROCm GPU Support (from ROCm repository)
-rocm-hip-runtime
-rocm-opencl-runtime
-rocm-smi
+# AMD GPU Support
+# ROCm userspace is NOT needed — Ollama bundles its own ROCm runtime.
+# The kernel-level AMD driver comes from firmware-amd-graphics (in neuraldrive.list.chroot).
+# rocm-smi-lib could be added back later for GPU monitoring if needed.

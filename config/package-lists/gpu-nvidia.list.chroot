@@ -1,6 +1,6 @@
-# NVIDIA GPU Support (from bookworm-backports)
+# NVIDIA GPU Support (from bookworm non-free)
+# nvidia-driver metapackage pulls in nvidia-kernel-dkms + userspace libs
+# nvidia-cuda-toolkit is NOT needed — Ollama bundles its own CUDA runtime
 nvidia-driver
-nvidia-kernel-dkms
-nvidia-cuda-toolkit
 nvidia-smi
 nvidia-persistenced

@@ -6,7 +6,8 @@ After=neuraldrive-gpu-detect.service
 User=neuraldrive-monitor
 Group=neuraldrive-monitor
 SupplementaryGroups=video render
-ExecStart=/usr/lib/neuraldrive/gpu-monitor/venv/bin/gpu-hot --port 1312 --host 127.0.0.1
+WorkingDirectory=/usr/lib/neuraldrive/gpu-monitor/gpu-hot
+ExecStart=/usr/lib/neuraldrive/gpu-monitor/venv/bin/python app.py --port 1312 --host 127.0.0.1
 Restart=always
 RestartSec=5
 
