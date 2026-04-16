@@ -72,3 +72,20 @@ RESULT: Mean diff: 13.2 (from 11.9). Pixels >50: 8.2%. Pixels >100: 2.0%.
   brain edge softness (hard circles vs original's anti-aliased blended edges),
   minor node/connection position offsets (< 3px).
 NEXT: Assess if current state passes "same logo" visual test.
+
+=== Iteration 6 — 2026-04-16 ===
+CHANGED: Brain silhouette replaced with potrace-traced path; connector optimized via parameter sweep.
+  Brain:
+  - Replaced 8 circles + fill rect with single potrace-traced path (971 chars, 44 bezier segments)
+  - Source: rendered brain layer from logo2-vector-layers.svg → de-rotated → filled holes → downscaled 35% → potrace
+  - Path transform: translate(0,700) scale(0.286885,-0.286885) maps potrace coords to upright frame
+  - Organic brain outline with smooth lobes — eliminates circle-based artifacts
+  Connector:
+  - Metal face: 168×108 at (262,478) → 148×96 at (272,480) — found via parameter sweep over 20+ configs
+  - Navy connector shell unchanged: 182×148 at (255,445)
+  - Metal gradient updated: #b0c4e2 → #9ab2d4 → #8098b8 (better match to measured metallic tones)
+RESULT: Mean diff: 10.304 (from 13.2). Pixels >50: 7.5% (from 8.2%). Pixels >100: 1.1% (from 2.0%).
+  22% improvement in mean diff. Brain path is the biggest visual win — smooth organic shape.
+  Error breakdown: cyan nodes (largest total error), blue gradient (large area, low per-pixel),
+  metal connector (small area, high per-pixel), navy outline edges.
+NEXT: Fine-tune node positions, connection endpoints, body outline rx/dims, body edge transition.

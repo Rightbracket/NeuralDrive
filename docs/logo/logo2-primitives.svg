@@ -6,9 +6,9 @@
       <stop offset="100%" stop-color="#0165e6"/>
     </linearGradient>
     <linearGradient id="metalGrad" x1="0.5" y1="0" x2="0.5" y2="1">
-      <stop offset="0%" stop-color="#9abae6"/>
-      <stop offset="80%" stop-color="#98b8e5"/>
-      <stop offset="100%" stop-color="#96aecd"/>
+      <stop offset="0%" stop-color="#b0c4e2"/>
+      <stop offset="60%" stop-color="#9ab2d4"/>
+      <stop offset="100%" stop-color="#8098b8"/>
     </linearGradient>
   </defs>
 
@@ -24,8 +24,8 @@
 
     <!-- Navy connector outline -->
     <rect x="255.0" y="445.0"
-          width="182.0" height="152.0"
-          rx="10" fill="#0c1a2e"/>
+          width="182.0" height="148.0"
+          rx="6" fill="#0c1a2e"/>
 
     <!-- Blue body interior (gradient) -->
     <rect x="216.0" y="55.0"
@@ -33,8 +33,8 @@
           rx="50.0" fill="url(#bodyGrad)"/>
 
     <!-- Metal connector face -->
-    <rect x="276.0" y="470.0"
-          width="140.0" height="80.0"
+    <rect x="272.0" y="480.0"
+          width="148.0" height="96.0"
           rx="3" fill="url(#metalGrad)"/>
 
     <!-- Navy contact squares -->
@@ -43,20 +43,10 @@
     <rect x="362.1" y="506.0"
           width="38.5" height="35.1" fill="#0c1a2e"/>
 
-    <!-- Brain fill rect (narrow spine connecting circle bumps) -->
-    <rect x="288.0" y="114.0"
-          width="100.0" height="260.0"
-          rx="20" fill="#143250"/>
-
-    <!-- Brain bump circles (8 overlapping circles, 1.30x scale) -->
-    <circle cx="245.1" cy="96.6" r="37.1" fill="#143250"/>
-    <circle cx="377.4" cy="134.9" r="39.0" fill="#143250"/>
-    <circle cx="424.3" cy="219.2" r="39.9" fill="#143250"/>
-    <circle cx="423.6" cy="293.3" r="41.0" fill="#143250"/>
-    <circle cx="378.6" cy="368.0" r="46.4" fill="#143250"/>
-    <circle cx="301.5" cy="364.9" r="47.8" fill="#143250"/>
-    <circle cx="265.7" cy="300.7" r="38.4" fill="#143250"/>
-    <circle cx="284.3" cy="175.1" r="37.6" fill="#143250"/>
+    <!-- Brain silhouette (traced path) -->
+    <g transform="translate(0,700) scale(0.286885,-0.286885)">
+      <path d="M1247 2055 c-45 -14 -55 -123 -13 -150 31 -20 105 -12 140 16 32 25 55 24 65 -3 13 -34 -5 -49 -48 -42 -40 6 -122 -15 -128 -33 -9 -27 130 -104 174 -97 91 14 119 -111 28 -128 -66 -12 -77 -173 -14 -215 64 -42 51 -57 -18 -21 -68 36 -119 -88 -64 -158 57 -73 -34 -158 -97 -91 -25 27 -27 38 -10 83 10 29 7 42 -28 127 -46 113 -49 113 -57 2 -10 -138 -26 -140 -27 -2 0 140 -2 141 -94 102 -97 -41 -120 -122 -45 -161 53 -27 36 -104 -23 -104 -40 0 -65 40 -48 79 15 38 5 88 -21 96 -37 12 -46 51 -20 86 26 35 22 103 -10 143 -24 31 -24 41 2 67 30 30 38 126 14 162 -23 35 -16 69 17 85 16 7 33 22 38 32 34 63 203 62 187 -1 -3 -13 -1 -19 6 -16 28 9 20 105 -10 124 -131 86 -297 -48 -298 -241 -1 -56 -6 -114 -13 -129 -16 -37 -15 -76 2 -124 12 -33 12 -48 1 -90 -14 -54 -9 -97 20 -165 8 -21 15 -52 15 -70 0 -127 162 -212 274 -144 40 24 40 24 77 -1 127 -84 299 14 299 170 0 14 11 48 25 75 29 58 32 114 10 186 -14 45 -13 54 5 113 22 71 17 121 -19 192 -11 20 -23 55 -27 76 -24 136 -142 211 -267 170z" fill="#143250"/>
+    </g>
 
     <!-- Neural network connections -->
     <line x1="342.4" y1="282.9" x2="372.5" y2="341.5"
