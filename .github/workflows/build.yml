@@ -9,7 +9,7 @@ jobs:
   build-iso:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build ISO via Docker
         run: docker compose run builder
@@ -38,7 +38,7 @@ jobs:
   validate-config:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install yq
         run: |
