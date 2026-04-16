@@ -218,3 +218,26 @@ RESULT: Mean diff: 6.396 (from 6.809). Pixels >50: 2.1%. Pixels >100: 0.6%.
   6.1% improvement from iteration 10. Cumulative: 85% reduction from initial 41.7.
   Brain color was the dominant improvement — matching the actual blended brain-over-gradient color.
 NEXT: Continue optimization — focus on remaining error hotspots.
+
+=== Iteration 12 — 2026-04-16 ===
+CHANGED: Inner border stroke + connector repositioning + contact shifts.
+  Blue body inner border:
+  - NEW: stroke="#0b265c" stroke-width="1.5" on blue interior rect
+  - Dark blue-grey border creates transition zone matching original's navy-to-blue edge
+  - −0.026 alone, adds minimal SVG complexity
+  Brain blur:
+  - stdDeviation 3 → 2 (sharper edge better matches with border + current overlay)
+  - −0.007 combined with border
+  Connector position:
+  - Navy connector x: 255.0→256.5 (shifted right 1.5px)
+  - Dramatically improved edge alignment — 6.348→6.184 alone
+  - The rotated connector edge now aligns better with original
+  Contact squares:
+  - Both shifted +1px right (x+1): matches connector shift
+  - 6.203→6.144 improvement
+  Overlay opacity:
+  - 0.40→0.41 (marginal adjustment)
+RESULT: Mean diff: 6.122 (from 6.396). Pixels >50: 2.0%. Pixels >100: 0.4%.
+  4.3% improvement from iteration 11. Cumulative: 85% reduction from initial 41.7.
+  Connector repositioning was the biggest win — fixing sub-pixel edge alignment.
+NEXT: Continue — we're in deeply diminishing returns territory. Try body outline x shift, more fine-tuning.

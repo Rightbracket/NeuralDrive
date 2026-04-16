@@ -12,7 +12,7 @@
       <stop offset="50%" stop-color="#b3cbf9"/>
       <stop offset="100%" stop-color="#c2deff"/>
     </linearGradient>
-    <filter id="brainBlur"><feGaussianBlur stdDeviation="3"/></filter>
+    <filter id="brainBlur"><feGaussianBlur stdDeviation="2"/></filter>
   </defs>
 
   <!-- Background -->
@@ -26,14 +26,14 @@
           rx="76" fill="#0c1a2e"/>
 
     <!-- Navy connector outline -->
-    <rect x="255.0" y="445.0"
+    <rect x="256.5" y="445.0"
           width="182.0" height="151.0"
           rx="3" fill="#0c1a2e"/>
 
     <!-- Blue body interior (gradient) -->
     <rect x="216.0" y="55.0"
           width="250.0" height="398.0"
-          rx="50.0" fill="url(#bodyGrad)"/>
+          rx="50.0" fill="url(#bodyGrad)" stroke="#0b265c" stroke-width="1.5"/>
 
     <!-- Metal connector face -->
     <rect x="278.0" y="473.0"
@@ -41,13 +41,13 @@
           rx="3" fill="url(#metalGrad)"/>
 
     <!-- Navy contact squares -->
-    <rect x="291.4" y="505.5"
+    <rect x="292.4" y="505.5"
           width="39.2" height="35.6" fill="#0c1a2e"/>
-    <rect x="362.1" y="506.0"
+    <rect x="363.1" y="506.0"
           width="38.5" height="35.1" fill="#0c1a2e"/>
 
     <!-- Brain zone darkening overlay -->
-    <ellipse cx="330" cy="235" rx="90" ry="110" fill="#010a20" opacity="0.40"/>
+    <ellipse cx="330" cy="235" rx="90" ry="110" fill="#010a20" opacity="0.41"/>
 
     <!-- Brain silhouette (traced path) -->
     <g transform="translate(0,700) scale(0.286885,-0.286885)" filter="url(#brainBlur)">
