@@ -21,7 +21,7 @@
   <g transform="rotate(44.1, 335.8, 249.1)">
 
     <!-- Navy body outline -->
-    <rect x="195.0" y="34.0"
+    <rect x="195.4" y="34.5"
           width="292.0" height="444.0"
           rx="76" fill="#0c1a2e"/>
 
@@ -31,7 +31,7 @@
           rx="3" fill="#0c1a2e"/>
 
     <!-- Blue body interior (gradient) -->
-    <rect x="216.0" y="55.0"
+    <rect x="216.5" y="55.0"
           width="250.0" height="398.0"
           rx="50.0" fill="url(#bodyGrad)" stroke="#0b265c" stroke-width="1.5"/>
 

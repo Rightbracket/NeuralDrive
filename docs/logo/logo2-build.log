@@ -241,3 +241,15 @@ RESULT: Mean diff: 6.122 (from 6.396). Pixels >50: 2.0%. Pixels >100: 0.4%.
   4.3% improvement from iteration 11. Cumulative: 85% reduction from initial 41.7.
   Connector repositioning was the biggest win — fixing sub-pixel edge alignment.
 NEXT: Continue — we're in deeply diminishing returns territory. Try body outline x shift, more fine-tuning.
+
+=== Iteration 13 — 2026-04-16 ===
+CHANGED: Body outline + interior sub-pixel repositioning.
+  Navy body outline: x 195.0→195.4, y 34.0→34.5
+  - Tested x range [194.5..196.0] and y range [34.0..35.5] in 0.5px increments
+  - Best combo: (195.4, 34.5) at 6.071
+  Blue interior: x 216.0→216.5
+  - Marginal −0.001 improvement
+  Combined: 6.122→6.071 (−0.051)
+RESULT: Mean diff: 6.071. Pixels >50: 1.9%. Pixels >100: 0.4%.
+  Very small gains from sub-pixel body alignment. Deeply in diminishing returns for positional tuning.
+NEXT: Try brain stroke approaches (mask, compound path, two-layer) to fix the over-darkened brain interior.
