@@ -189,3 +189,32 @@ RESULT: Mean diff: 6.809 (from 6.966). Pixels >50: 2.2%. Pixels >100: 0.6%.
   SVG: ~5KB, 92 lines.
   Diminishing returns — most parameter sweeps show <0.01 improvement potential.
 NEXT: Assess remaining error budget and decide whether to continue.
+
+=== Iteration 11 — 2026-04-16 ===
+CHANGED: Color calibration overhaul — brain fill, node radii, metal/body gradients.
+  Brain fill:
+  - Old: #133050 → New: #152e64 (brighter blue, less green)
+  - Single biggest improvement this iteration: 6.786 → 6.571 alone (−0.215)
+  - Fine-tuned through full R/G/B sweep in neighborhood of initial candidates
+  Node radii (6 nodes adjusted ±0.5-1.0):
+  - Node 3: 18.0→17.5, Node 4: 16.0→16.5, Node 5: 15.5→16.0
+  - Node 6: 15.0→16.0, Node 7: 16.0→15.5, Node 9: 10.5→11.0
+  - Combined radii: −0.019 improvement
+  Body outline height:
+  - 445→444 (1px shorter, better top-corner alignment)
+  Metal gradient:
+  - Top: #a0baea→#9ab6e3, Mid: #adc6f3→#b3cbf9, Bottom: #bad2fc→#c2deff
+  - Brighter overall, better match to measured metal luminance
+  Body gradient:
+  - Top: #1698ff→#1598ff (marginally darker)
+  - Stop 2: 23% #0a86f0 → 20% #0b88f2 (earlier, slightly brighter)
+  - Stop 3: #0568e4 → #066cea (brighter blue)
+  Overlay opacity:
+  - 0.39→0.40 (marginal adjustment for new brain color)
+  Also tested but no improvement:
+  - Radial gradient overlay, 5-stop body gradient, overlay color variants
+  - Interior height, contact square positions, stroke width offsets
+RESULT: Mean diff: 6.396 (from 6.809). Pixels >50: 2.1%. Pixels >100: 0.6%.
+  6.1% improvement from iteration 10. Cumulative: 85% reduction from initial 41.7.
+  Brain color was the dominant improvement — matching the actual blended brain-over-gradient color.
+NEXT: Continue optimization — focus on remaining error hotspots.
