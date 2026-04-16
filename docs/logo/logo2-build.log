@@ -115,3 +115,21 @@ RESULT: Mean diff: 9.084 (from 10.304). Pixels >50: 2.6% (from 7.5%). Pixels >10
   SVG: ~5KB with blur filter, traced brain path, 4-stop gradient.
   Remaining error dominated by: blue body (brain-edge anti-aliasing), navy edges, background spillover.
 NEXT: Further gradient fine-tuning, body outline edge effects, node position micro-adjustments.
+
+=== Iteration 8 — 2026-04-16 ===
+CHANGED: Color fine-tuning — cyan nodes, brain fill, connector corner radius.
+  Cyan nodes/lines:
+  - Old: #00d6e8 → New: #00e0ee (brighter, slightly more green)
+  - Swept 30 cyan variants; #00e0ee = (0,224,238) best match to original node brightness
+  - Nodes and connection lines share color, both updated
+  Brain fill:
+  - Old: #143250 → New: #133050 (marginally darker/bluer)
+  Connector:
+  - rx changed from 6 to 3 (sharper corners match original better)
+  Combined effect tested: all three changes together produce additive improvement.
+RESULT: Mean diff: 8.938 (from 9.084). Pixels >50: 2.6%. Pixels >100: 1.1%.
+  Cumulative: 79% reduction from initial 41.7 to 8.9.
+  Remaining error: navy outline edges, body-connector junction, brain-edge antialiasing.
+  Diminishing returns — most tractable improvements now exhausted.
+  Top error hotspots: connector bottom tip (119/px), metal-navy transition (100/px).
+NEXT: Assess if further iteration is worthwhile or if current quality is sufficient.
