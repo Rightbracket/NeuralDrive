@@ -94,6 +94,7 @@ pytube
 youtube-transcript-api
 nltk
 tiktoken
+boto3
 REQS
 
 /usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir -r /tmp/requirements-min.txt
