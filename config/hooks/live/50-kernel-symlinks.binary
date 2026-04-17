@@ -1,0 +1,27 @@
+#!/bin/sh
+# Create versionless kernel/initrd symlinks in /live/ so our custom
+# grub.cfg can reference /live/vmlinuz and /live/initrd.img.
+# live-build names files with version suffixes (e.g. vmlinuz-6.1.0-44-amd64)
+# but our custom grub.cfg uses the short names.
+set -e
+
+cd binary/live 2>/dev/null || cd live 2>/dev/null || {
+    echo "WARNING: Could not find live directory for kernel symlinks"
+    exit 0
+}
+
+for k in vmlinuz-*; do
+    if [ -f "$k" ]; then
+        ln -sf "$k" vmlinuz
+        echo "Symlinked vmlinuz -> $k"
+        break
+    fi
+done
+
+for i in initrd.img-*; do
+    if [ -f "$i" ]; then
+        ln -sf "$i" initrd.img
+        echo "Symlinked initrd.img -> $i"
+        break
+    fi
+done
