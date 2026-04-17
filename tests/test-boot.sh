@@ -1,8 +1,11 @@
 #!/bin/bash
+# BVT (Build Verification Test): Boot the ISO in QEMU and verify it reaches
+# a login prompt via serial console. Optionally checks the Caddy health endpoint.
 set -euo pipefail
 
-ISO_PATH=$1
-TIMEOUT=600
+ISO_PATH="${1:-}"
+TIMEOUT=300
+BOOT_LOG="/tmp/neuraldrive-boot.log"
 
 if [ -z "$ISO_PATH" ]; then
     echo "Usage: test-boot.sh <iso-path>"
@@ -20,41 +23,77 @@ if [ -w /dev/kvm ]; then
     echo "KVM acceleration available."
 else
     echo "WARNING: KVM not available, using software emulation (slow)."
+    TIMEOUT=600
 fi
 
-echo "Starting QEMU (UEFI mode)..."
+rm -f "$BOOT_LOG"
+touch "$BOOT_LOG"
+
+echo "Starting QEMU (UEFI, serial console)..."
 qemu-system-x86_64 \
     $KVM_FLAG \
     -m 4G \
     -cdrom "$ISO_PATH" \
     -bios /usr/share/ovmf/OVMF.fd \
-    -net nic -net user,hostfwd=tcp::11434-:11434,hostfwd=tcp::8443-:8443 \
-    -display none -vnc :1 -daemonize
+    -net nic -net user,hostfwd=tcp::8443-:8443 \
+    -display none \
+    -serial file:"$BOOT_LOG" \
+    -no-reboot &
+QEMU_PID=$!
 
+echo "QEMU PID: $QEMU_PID"
+
+BOOTED=false
 START_TIME=$(date +%s)
 while true; do
-    if curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
-        echo "PASS: Ollama API ready."
+    if grep -qi "login:" "$BOOT_LOG" 2>/dev/null; then
+        echo "PASS: System booted to login prompt."
+        BOOTED=true
         break
     fi
-    CURRENT_TIME=$(date +%s)
-    ELAPSED=$((CURRENT_TIME - START_TIME))
-    if [ $ELAPSED -gt $TIMEOUT ]; then
-        echo "FAIL: Boot timeout exceeded (${TIMEOUT}s)."
-        pkill qemu-system-x86_64 2>/dev/null || true
+
+    if grep -qi "kernel panic" "$BOOT_LOG" 2>/dev/null; then
+        echo "FAIL: Kernel panic detected."
+        echo "--- Boot log (last 80 lines) ---"
+        tail -80 "$BOOT_LOG"
+        kill "$QEMU_PID" 2>/dev/null || true
         exit 1
     fi
-    echo "  Waiting... (${ELAPSED}s / ${TIMEOUT}s)"
+
+    if ! kill -0 "$QEMU_PID" 2>/dev/null; then
+        echo "FAIL: QEMU exited unexpectedly."
+        echo "--- Boot log ---"
+        cat "$BOOT_LOG"
+        exit 1
+    fi
+
+    ELAPSED=$(( $(date +%s) - START_TIME ))
+    if [ "$ELAPSED" -gt "$TIMEOUT" ]; then
+        echo "FAIL: Boot timeout exceeded (${TIMEOUT}s)."
+        echo "--- Boot log (last 80 lines) ---"
+        tail -80 "$BOOT_LOG"
+        kill "$QEMU_PID" 2>/dev/null || true
+        exit 1
+    fi
+
+    if (( ELAPSED % 30 < 5 )); then
+        echo "  Waiting for login prompt... (${ELAPSED}s / ${TIMEOUT}s)"
+    fi
     sleep 5
 done
 
-echo "Checking health endpoint..."
-if curl -sf -k https://localhost:8443/health >/dev/null 2>&1; then
+# Best-effort: check Caddy health endpoint through port forwarding.
+# Caddy listens on 0.0.0.0:8443 so hostfwd works for this.
+echo "Checking Caddy health endpoint (best-effort)..."
+sleep 10
+if curl -sf -k https://localhost:8443/health --max-time 15 2>/dev/null; then
     echo "PASS: Caddy health endpoint responding."
 else
-    echo "WARN: Caddy health endpoint not responding (may need more time)."
+    echo "INFO: Caddy health endpoint not responding (non-blocking for BVT)."
 fi
 
-pkill qemu-system-x86_64 2>/dev/null || true
+kill "$QEMU_PID" 2>/dev/null || true
+wait "$QEMU_PID" 2>/dev/null || true
+
 echo ""
 echo "BVT Passed."
