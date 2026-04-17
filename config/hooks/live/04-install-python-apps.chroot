@@ -65,6 +65,34 @@ black==26.1.0
 pydub
 chardet==5.2.0
 beautifulsoup4
+
+markdown
+pymdown-extensions
+opentelemetry-api
+googleapis-common-protos
+validators
+psutil
+pillow
+pypdf
+fpdf2
+ftfy
+rank-bm25
+python-mimeparse
+pytz
+docx2txt
+python-pptx
+openpyxl
+xlrd
+pyxlsb
+msoffcrypto-tool
+ldap3
+pymysql
+opensearch-py
+anthropic
+ddgs
+pytube
+youtube-transcript-api
+nltk
 REQS
 
 /usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir -r /tmp/requirements-min.txt
