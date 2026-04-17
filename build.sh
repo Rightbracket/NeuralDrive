@@ -68,7 +68,6 @@ lb config \
     --apt-recommends false \
     --linux-packages "linux-image" \
     --compression xz \
-    --bootappend-live "boot=live components console=tty0 console=ttyS0,115200" \
     --iso-volume "NeuralDrive" \
     --iso-application "NeuralDrive Inference Server" \
     --iso-publisher "NeuralDrive Project"
