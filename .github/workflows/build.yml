@@ -21,8 +21,17 @@ jobs:
           sudo docker image prune -af
           df -h /
 
+      - name: Derive version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=dev-$(date +%Y.%m.%d)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build ISO via Docker
-        run: docker compose run builder
+        run: docker compose run -e NEURALDRIVE_VERSION=${{ steps.version.outputs.value }} builder
 
       - name: Run Boot Test (QEMU)
         run: |
