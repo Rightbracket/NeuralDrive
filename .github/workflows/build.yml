@@ -38,13 +38,21 @@ jobs:
           ISO=$(ls output/neuraldrive-*.iso)
           mkdir -p /tmp/iso_mount
           sudo mount -o loop,ro "$ISO" /tmp/iso_mount
+          echo "=== /live/ directory contents ==="
+          ls -la /tmp/iso_mount/live/ 2>/dev/null || echo "/live/ directory NOT FOUND"
+          echo "=== /.disk/ contents ==="
+          ls -la /tmp/iso_mount/.disk/ 2>/dev/null || echo "/.disk/ directory NOT FOUND"
+          cat /tmp/iso_mount/.disk/info 2>/dev/null || echo "No .disk/info"
           echo "=== GRUB config files ==="
           find /tmp/iso_mount -name "grub.cfg" -o -name "*.cfg" | grep -i grub | head -20
-          echo "=== grub.cfg contents ==="
-          find /tmp/iso_mount -name "grub.cfg" -exec echo "--- {} ---" \; -exec cat {} \;
+          echo "=== Main grub.cfg ==="
+          cat /tmp/iso_mount/boot/grub/grub.cfg 2>/dev/null || echo "No /boot/grub/grub.cfg"
+          echo "=== EFI embedded grub.cfg (x86_64) ==="
+          cat /tmp/iso_mount/boot/grub/x86_64-efi/grub.cfg 2>/dev/null || echo "Not found"
+          echo "=== EFI embedded grub.cfg (i386) ==="
+          cat /tmp/iso_mount/boot/grub/i386-efi/grub.cfg 2>/dev/null || echo "Not found"
           echo "=== Kernel cmdline check ==="
-          grep -r "console=" /tmp/iso_mount/boot/ 2>/dev/null || echo "No console= found in boot/"
-          grep -r "console=" /tmp/iso_mount/EFI/ 2>/dev/null || echo "No console= found in EFI/"
+          grep -r "console=" /tmp/iso_mount/boot/grub/grub.cfg 2>/dev/null || echo "No console= in grub.cfg"
           sudo umount /tmp/iso_mount
 
       - name: Run Boot Test (QEMU)
