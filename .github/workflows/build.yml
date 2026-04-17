@@ -37,6 +37,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-system-x86 ovmf
+          sudo chmod 666 /dev/kvm
           chmod +x tests/test-boot.sh
           tests/test-boot.sh output/neuraldrive-*.iso
 

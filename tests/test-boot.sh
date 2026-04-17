@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ISO_PATH=$1
-TIMEOUT=300
+TIMEOUT=600
 
 if [ -z "$ISO_PATH" ]; then
     echo "Usage: test-boot.sh <iso-path>"
@@ -14,8 +14,17 @@ if ! command -v qemu-system-x86_64 &>/dev/null; then
     exit 1
 fi
 
+KVM_FLAG=""
+if [ -w /dev/kvm ]; then
+    KVM_FLAG="-enable-kvm"
+    echo "KVM acceleration available."
+else
+    echo "WARNING: KVM not available, using software emulation (slow)."
+fi
+
 echo "Starting QEMU (UEFI mode)..."
 qemu-system-x86_64 \
+    $KVM_FLAG \
     -m 4G \
     -cdrom "$ISO_PATH" \
     -bios /usr/share/ovmf/OVMF.fd \
