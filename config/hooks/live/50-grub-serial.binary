@@ -1,0 +1,17 @@
+#!/bin/bash
+# Prepend GRUB serial terminal config so headless/QEMU boots produce serial output.
+# Without this, GRUB defaults to gfxterm and serial console sees nothing after boot.
+
+GRUB_CFG="binary/boot/grub/grub.cfg"
+
+if [ -f "$GRUB_CFG" ]; then
+    SERIAL_BLOCK="serial --speed=115200
+terminal_input serial console
+terminal_output serial console
+"
+    printf '%s\n' "$SERIAL_BLOCK" | cat - "$GRUB_CFG" > /tmp/grub_serial_tmp
+    mv /tmp/grub_serial_tmp "$GRUB_CFG"
+    echo "GRUB serial terminal configured in $GRUB_CFG"
+else
+    echo "WARNING: $GRUB_CFG not found, skipping serial terminal config"
+fi

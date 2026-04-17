@@ -29,17 +29,17 @@ fi
 rm -f "$BOOT_LOG"
 touch "$BOOT_LOG"
 
-echo "Starting QEMU (UEFI, serial console via -nographic)..."
-# -nographic removes VGA device, forcing OVMF+GRUB to use serial console.
-# Without this, GRUB uses gfxterm and serial gets no kernel output.
+echo "Starting QEMU (UEFI, serial console)..."
+# -display none keeps VGA device (for GRUB gfxterm) while hiding display.
+# Serial goes to stdout → file. Kernel uses console=ttyS0 for serial output.
 qemu-system-x86_64 \
     $KVM_FLAG \
     -m 4G \
     -cdrom "$ISO_PATH" \
     -bios /usr/share/ovmf/OVMF.fd \
     -net nic -net user,hostfwd=tcp::8443-:8443 \
-    -nographic \
-    -monitor none \
+    -display none \
+    -serial stdio \
     -no-reboot > "$BOOT_LOG" 2>&1 &
 QEMU_PID=$!
 
@@ -72,14 +72,16 @@ while true; do
     ELAPSED=$(( $(date +%s) - START_TIME ))
     if [ "$ELAPSED" -gt "$TIMEOUT" ]; then
         echo "FAIL: Boot timeout exceeded (${TIMEOUT}s)."
-        echo "--- Boot log (last 80 lines) ---"
-        tail -80 "$BOOT_LOG"
+        LOG_SIZE=$(wc -c < "$BOOT_LOG" 2>/dev/null || echo 0)
+        echo "--- Boot log (${LOG_SIZE} bytes, last 200 lines) ---"
+        tail -200 "$BOOT_LOG"
         kill "$QEMU_PID" 2>/dev/null || true
         exit 1
     fi
 
     if (( ELAPSED % 30 < 5 )); then
-        echo "  Waiting for login prompt... (${ELAPSED}s / ${TIMEOUT}s)"
+        LOG_SIZE=$(wc -c < "$BOOT_LOG" 2>/dev/null || echo 0)
+        echo "  Waiting for login prompt... (${ELAPSED}s / ${TIMEOUT}s, log: ${LOG_SIZE} bytes)"
     fi
     sleep 5
 done

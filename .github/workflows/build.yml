@@ -33,6 +33,20 @@ jobs:
       - name: Build ISO via Docker
         run: docker compose run -e NEURALDRIVE_VERSION=${{ steps.version.outputs.value }} builder
 
+      - name: Inspect ISO GRUB config
+        run: |
+          ISO=$(ls output/neuraldrive-*.iso)
+          mkdir -p /tmp/iso_mount
+          sudo mount -o loop,ro "$ISO" /tmp/iso_mount
+          echo "=== GRUB config files ==="
+          find /tmp/iso_mount -name "grub.cfg" -o -name "*.cfg" | grep -i grub | head -20
+          echo "=== grub.cfg contents ==="
+          find /tmp/iso_mount -name "grub.cfg" -exec echo "--- {} ---" \; -exec cat {} \;
+          echo "=== Kernel cmdline check ==="
+          grep -r "console=" /tmp/iso_mount/boot/ 2>/dev/null || echo "No console= found in boot/"
+          grep -r "console=" /tmp/iso_mount/EFI/ 2>/dev/null || echo "No console= found in EFI/"
+          sudo umount /tmp/iso_mount
+
       - name: Run Boot Test (QEMU)
         run: |
           sudo apt-get update
