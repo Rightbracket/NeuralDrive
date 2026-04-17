@@ -35,6 +35,7 @@ jobs:
 
       - name: Run Boot Test (QEMU)
         run: |
+          sudo apt-get update
           sudo apt-get install -y qemu-system-x86 ovmf
           chmod +x tests/test-boot.sh
           tests/test-boot.sh output/neuraldrive-*.iso
