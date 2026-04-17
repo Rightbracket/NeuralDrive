@@ -17,7 +17,7 @@ fi
 echo "Starting QEMU (UEFI mode)..."
 qemu-system-x86_64 \
     -m 4G \
-    -drive file="$ISO_PATH",format=raw,readonly=on \
+    -cdrom "$ISO_PATH" \
     -bios /usr/share/ovmf/OVMF.fd \
     -net nic -net user,hostfwd=tcp::11434-:11434,hostfwd=tcp::8443-:8443 \
     -display none -vnc :1 -daemonize
