@@ -13,8 +13,6 @@ QEMU_IN="/tmp/qemu-in"
 BOOT_TIMEOUT=300     # seconds to wait for login prompt
 SVC_SETTLE=60        # seconds after login for services to settle
 DIAG_WAIT=15         # seconds after last diagnostic command for output flush
-LIVE_USER="user"     # Debian live default user
-LIVE_PASS="live"     # Debian live default password
 
 # All neuraldrive services that should be active after boot
 ALL_SERVICES=(
@@ -143,31 +141,35 @@ while true; do
     sleep 3
 done
 
-# ── Phase 2: Serial Login ─────────────────────────────────────────
+# ── Phase 2: Serial Shell (autologin) ─────────────────────────────
 LOGGED_IN=false
 if $BOOTED; then
     echo ""
     echo "══════════════════════════════════════════"
-    echo " Phase 2: Serial Login"
+    echo " Phase 2: Serial Shell (autologin)"
     echo "══════════════════════════════════════════"
 
+    # serial-getty@ttyS0 has autologin configured for neuraldrive-admin.
+    # Wait for the shell to be ready by sending a probe command.
+    echo "  Waiting 15s for autologin to complete..."
+    sleep 15
     POS=$(log_size)
-    echo "  Sending username: ${LIVE_USER}"
-    send_serial "$LIVE_USER" 2
+    send_serial "echo SHELL_READY_PROBE" 3
 
-    if wait_serial "assword:" 20 "$POS"; then
-        POS=$(log_size)
-        echo "  Sending password"
-        send_serial "$LIVE_PASS" 5
-        # Don't try to detect the shell prompt ($) — it matches too many
-        # things in the boot log. Just wait and try commands.
-        pass_msg "Serial login completed (${LIVE_USER})"
+    if wait_serial "SHELL_READY_PROBE" 30 "$POS"; then
+        pass_msg "Serial shell ready (autologin)"
         LOGGED_IN=true
     else
-        info_msg "Password prompt not detected — login may have failed"
-        # Still try sending password in case prompt was missed in the log
-        send_serial "$LIVE_PASS" 5
-        LOGGED_IN=true  # Optimistic — diagnostics will reveal if it worked
+        info_msg "Shell probe not detected — autologin may have failed"
+        sleep 10
+        POS=$(log_size)
+        send_serial "echo SHELL_READY_PROBE_2" 5
+        if wait_serial "SHELL_READY_PROBE_2" 30 "$POS"; then
+            pass_msg "Serial shell ready (autologin, second attempt)"
+            LOGGED_IN=true
+        else
+            fail_msg "Serial shell not available — cannot collect diagnostics"
+        fi
     fi
 fi
 
@@ -252,7 +254,7 @@ if $LOGGED_IN; then
     echo "  → Internal endpoint probes"
     send_serial "echo '---EP_START---'" 1
     send_serial "curl -sf -k https://localhost:8443/health --max-time 5 >/dev/null 2>&1 && echo 'EP:caddy_health:pass' || echo 'EP:caddy_health:fail'" 3
-    send_serial "curl -sf -k -o /dev/null -w 'EP:webui_https:%{http_code}\n' https://localhost/ --max-time 5 2>/dev/null || echo 'EP:webui_https:fail'" 3
+    send_serial "curl -sf -k https://localhost/ --max-time 5 >/dev/null 2>&1 && echo 'EP:webui_https:pass' || echo 'EP:webui_https:fail'" 3
     send_serial "curl -sf http://localhost:11434/api/tags --max-time 5 >/dev/null 2>&1 && echo 'EP:ollama_api:pass' || echo 'EP:ollama_api:fail'" 3
     send_serial "curl -sf http://localhost:3001/ --max-time 5 >/dev/null 2>&1 && echo 'EP:system_api:pass' || echo 'EP:system_api:fail'" 3
     send_serial "echo '---EP_END---'" 1
@@ -282,16 +284,14 @@ echo " Phase 5: External Endpoint Checks"
 echo "══════════════════════════════════════════"
 
 if kill -0 "$QEMU_PID" 2>/dev/null; then
-    # Caddy /health on :8443
     if curl -sf -k https://localhost:8443/health --max-time 15 2>/dev/null; then
         pass_msg "Caddy /health reachable (host → :8443)"
     else
         fail_msg "Caddy /health not reachable (host → :8443)"
     fi
 
-    # Open WebUI via Caddy on :443 (forwarded to host :4443)
-    HTTP_CODE=$(curl -sf -k -o /dev/null -w '%{http_code}' https://localhost:4443/ --max-time 15 2>/dev/null || echo "000")
-    if [ "$HTTP_CODE" != "000" ]; then
+    HTTP_CODE=$(curl -k -o /dev/null -w '%{http_code}' https://localhost:4443/ --max-time 15 2>/dev/null) || true
+    if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" != "000" ]; then
         pass_msg "Caddy :443 reachable (HTTP ${HTTP_CODE}, host → :4443)"
     else
         fail_msg "Caddy :443 not reachable (host → :4443)"
@@ -344,18 +344,11 @@ done
 echo ""
 echo "── Internal Endpoint Results ──"
 for ep in caddy_health webui_https ollama_api system_api; do
-    result=$(grep -o "EP:${ep}:[a-z0-9]*" "$BOOT_LOG" 2>/dev/null | tail -1 | cut -d: -f3)
+    result=$(grep -o "EP:${ep}:[a-z]*" "$BOOT_LOG" 2>/dev/null | tail -1 | cut -d: -f3)
     if [ -z "$result" ]; then
         info_msg "EP ${ep}: no result (serial diagnostics may not have run)"
     elif [ "$result" = "pass" ]; then
         pass_msg "EP ${ep}: reachable"
-    elif echo "$result" | grep -qE '^[0-9]+$'; then
-        # HTTP status code
-        if [ "$result" -ge 200 ] && [ "$result" -lt 500 ]; then
-            pass_msg "EP ${ep}: HTTP ${result}"
-        else
-            fail_msg "EP ${ep}: HTTP ${result}"
-        fi
     else
         fail_msg "EP ${ep}: ${result}"
     fi
