@@ -56,12 +56,21 @@ jobs:
           sudo umount /tmp/iso_mount
 
       - name: Run Boot Test (QEMU)
+        id: boot-test
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-system-x86 ovmf
           sudo chmod 666 /dev/kvm
           chmod +x tests/test-boot.sh
           tests/test-boot.sh output/neuraldrive-*.iso
+
+      - name: Upload boot log
+        if: always() && steps.boot-test.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-diagnostic-log
+          path: /tmp/neuraldrive-boot.log
+          retention-days: 14
 
       # TODO: Upload ISO to Internet Archive on release tags.
       # See plan/future-iso-storage.md for setup instructions.
