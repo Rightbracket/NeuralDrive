@@ -29,16 +29,18 @@ fi
 rm -f "$BOOT_LOG"
 touch "$BOOT_LOG"
 
-echo "Starting QEMU (UEFI, serial console)..."
+echo "Starting QEMU (UEFI, serial console via -nographic)..."
+# -nographic removes VGA device, forcing OVMF+GRUB to use serial console.
+# Without this, GRUB uses gfxterm and serial gets no kernel output.
 qemu-system-x86_64 \
     $KVM_FLAG \
     -m 4G \
     -cdrom "$ISO_PATH" \
     -bios /usr/share/ovmf/OVMF.fd \
     -net nic -net user,hostfwd=tcp::8443-:8443 \
-    -display none \
-    -serial file:"$BOOT_LOG" \
-    -no-reboot &
+    -nographic \
+    -monitor none \
+    -no-reboot > "$BOOT_LOG" 2>&1 &
 QEMU_PID=$!
 
 echo "QEMU PID: $QEMU_PID"
