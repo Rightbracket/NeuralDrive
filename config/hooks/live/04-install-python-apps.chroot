@@ -93,10 +93,14 @@ ddgs
 pytube
 youtube-transcript-api
 nltk
+tiktoken
 REQS
 
 /usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir -r /tmp/requirements-min.txt
 rm -f /tmp/requirements-min.txt
+
+# WebUI service runs as neuraldrive-webui; venv must be writable for static asset caching, .pyc, etc.
+chown -R neuraldrive-webui:neuraldrive-webui /usr/lib/neuraldrive/webui/venv
 
 # --- gpu-hot (GPU monitoring dashboard) ---
 python3 -m venv /usr/lib/neuraldrive/gpu-monitor/venv
