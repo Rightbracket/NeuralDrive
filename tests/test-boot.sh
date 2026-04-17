@@ -236,6 +236,14 @@ if $LOGGED_IN; then
         send_serial "echo '---SVCDETAIL:neuraldrive-${svc}:end---'" 1
     done
 
+    # ── 4f2: Per-service journal logs (captures app-level stderr/stdout) ──
+    echo "  → Per-service journal logs (failed/activating units)"
+    for svc in "${ALL_SERVICES[@]}"; do
+        send_serial "echo '---SVCJOURNAL:neuraldrive-${svc}:start---'" 1
+        send_serial "sudo journalctl -u neuraldrive-${svc}.service --no-pager -n 40 --no-hostname 2>/dev/null || echo 'JOURNAL_UNAVAILABLE'" 5
+        send_serial "echo '---SVCJOURNAL:neuraldrive-${svc}:end---'" 1
+    done
+
     # ── 4g: Parseable active/inactive check ──
     echo "  → Parseable service state check"
     send_serial "echo '---ACTIVE_CHECK_START---'" 1

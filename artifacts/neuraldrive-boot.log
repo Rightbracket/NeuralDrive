@@ -1,0 +1,147 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI QEMU DVD-ROM QM00003 " from PciRoot(0x0)/Pci(0x1,0x1)/Ata(Secondary,Master,0x0)
+BdsDxe: starting Boot0001 "UEFI QEMU DVD-ROM QM00003 " from PciRoot(0x0)/Pci(0x1,0x1)/Ata(Secondary,Master,0x0)
+[0m[30m[47mWelcome to GRUB!
+
+[0m[37m[40m[H[J[1;1H[?25l[m[H[J[1;1H[2;24HGNU GRUB  version 2.06-13+deb12u1
+
+[m[4;2H+----------------------------------------------------------------------------+[5;2H|[5;79H|[6;2H|[6;79H|[7;2H|[7;79H|[8;2H|[8;79H|[9;2H|[9;79H|[10;2H|[10;79H|[11;2H|[11;79H|[12;2H|[12;79H|[13;2H|[13;79H|[14;2H|[14;79H|[15;2H|[15;79H|[16;2H|[16;79H|[17;2H+----------------------------------------------------------------------------+[m[18;2H[19;2H[m     Use the ^ and v keys to select which entry is highlighted.          
+      Press enter to boot the selected OS, `e' to edit the commands       
+      before booting or `c' for a command-line.                           [5;80H [7m[5;3H*NeuralDrive (Normal)                                                       [m[5;78H[m[m[6;3H NeuralDrive (Safe Mode)                                                    [m[6;78H[m[m[7;3H NeuralDrive (CD Mode - RAM Only)                                           [m[7;78H[m[m[8;3H NeuralDrive (Debug)                                                        [m[8;78H[m[m[9;3H                                                                            [m[9;78H[m[m[10;3H                                                                            [m[10;78H[m[m[11;3H                                                                            [m[11;78H[m[m[12;3H                                                                            [m[12;78H[m[m[13;3H                                                                            [m[13;78H[m[m[14;3H                                                                            [m[14;78H[m[m[15;3H                                                                            [m[15;78H[m[m[16;3H                                                                            [m[16;78H[m[16;80H [5;78H[0m[30m[40m[2J[01;01H[0m[37m[40m[02;34HGNU GRUB  version 2.06-13+deb12u1
+
+[1m[37m[40m[04;02H┌────────────────────────────────────────────────────────────────────────────────────────────────┐[05;02H│[05;99H│[06;02H│[06;99H│[07;02H│[07;99H│[08;02H│[08;99H│[09;02H│[09;99H│[10;02H│[10;99H│[11;02H│[11;99H│[12;02H│[12;99H│[13;02H│[13;99H│[14;02H│[14;99H│[15;02H│[15;99H│[16;02H│[16;99H│[17;02H│[17;99H│[18;02H│[18;99H│[19;02H│[19;99H│[20;02H│[20;99H│[21;02H│[21;99H│[22;02H│[22;99H│[23;02H│[23;99H│[24;02H└────────────────────────────────────────────────────────────────────────────────────────────────┘[25;02H[26;02H[0m[37m[40m     Use the ▲ and ▼ keys to select which entry is highlighted.                              
+      Press enter to boot the selected OS, `e' to edit the commands before booting or `c' for 
+      a command-line.                                                                         [05;:0H [0m[30m[47m[05;03H*NeuralDrive (Normal)                                                                           [1m[37m[40m[05;98H[0m[37m[40m[1m[37m[40m[06;03H NeuralDrive (Safe Mode)                                                                        [06;98H[0m[37m[40m[1m[37m[40m[07;03H NeuralDrive (CD Mode - RAM Only)                                                               [07;98H[0m[37m[40m[1m[37m[40m[08;03H NeuralDrive (Debug)                                                                            [08;98H[0m[37m[40m[1m[37m[40m[09;03H                                                                                                [09;98H[0m[37m[40m[1m[37m[40m[10;03H                                                                                                [10;98H[0m[37m[40m[1m[37m[40m[11;03H                                                                                                [11;98H[0m[37m[40m[1m[37m[40m[12;03H                                                                                                [12;98H[0m[37m[40m[1m[37m[40m[13;03H                                                                                                [13;98H[0m[37m[40m[1m[37m[40m[14;03H                                                                                                [14;98H[0m[37m[40m[1m[37m[40m[15;03H                                                                                                [15;98H[0m[37m[40m[1m[37m[40m[16;03H                                                                                                [16;98H[0m[37m[40m[1m[37m[40m[17;03H                                                                                                [17;98H[0m[37m[40m[1m[37m[40m[18;03H                                                                                                [18;98H[0m[37m[40m[1m[37m[40m[19;03H                                                                                                [19;98H[0m[37m[40m[1m[37m[40m[20;03H                                                                                                [20;98H[0m[37m[40m[1m[37m[40m[21;03H                                                                                                [21;98H[0m[37m[40m[1m[37m[40m[22;03H                                                                                                [22;98H[0m[37m[40m[1m[37m[40m[23;03H                                                                                                [23;98H[0m[37m[40m[23;:0H [05;98H[29;01H   The highlighted entry will be executed automatically in 5s.                                     [05;98H[22;1H   The highlighted entry will be executed automatically in 5s.                 [5;78H[29;01H   The highlighted entry will be executed automatically in 4s.                                     [05;98H[22;1H   The highlighted entry will be executed automatically in 4s.                 [5;78H[29;01H   The highlighted entry will be executed automatically in 3s.                                     [05;98H[22;1H   The highlighted entry will be executed automatically in 3s.                 [5;78H[29;01H   The highlighted entry will be executed automatically in 2s.                                     [05;98H[22;1H   The highlighted entry will be executed automatically in 2s.                 [5;78H[29;01H   The highlighted entry will be executed automatically in 1s.                                     [05;98H[22;1H   The highlighted entry will be executed automatically in 1s.                 [5;78H[29;01H   The highlighted entry will be executed automatically in 0s.                                     [05;98H[22;1H   The highlighted entry will be executed automatically in 0s.                 [5;78H[0m[30m[40m[2J[01;01H[0m[37m[40m[?25h[H[J[1;1H[H[J[1;1H[0m[30m[40m[2J[01;01H[0m[37m[40m    Booting `NeuralDrive (Normal)'Booting `NeuralDrive (Normal)'
+
+
+
+[[0;1;31mFAILED[0m] Failed to start [0;1;39mnvidia-per…e[0m - NVIDIA Persistence Daemon.
+[   16.773149] show-ip.sh[930]: ============================================
+[   16.774705] show-ip.sh[930]:   NeuralDrive is ready!
+[   16.775849] show-ip.sh[930]:   Dashboard: https://10.0.2.15/
+[   16.787006] show-ip.sh[930]:   API:       https://10.0.2.15:8443/v1
+[   16.804462] show-ip.sh[930]:   mDNS:      https://neuraldrive.local/
+[   16.811959] show-ip.sh[930]: ============================================
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: user
+Password: 
+
+Login incorrect
+neuraldrive login: 
+Login timed out after 60 seconds.
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: 
+neuraldrive login: 
+neuraldrive login: echo '---UNIT_LIST_START---'
+Password: 
+
+Login incorrect
+neuraldrive login: echo '---UNIT_LIST_END---'
+Password: 
+systemctl --failed --no-pager
+
+Login incorrect
+neuraldrive login: echo '---FAILED_END---'
+Password: 
+sudo ss -tlnp 2>/dev/null || ss -tlnp
+
+Login incorrect
+neuraldrive login: echo '---PORTS_END---'
+Password: 
+cat /run/neuraldrive/gpu.conf 2>/dev/null || echo 'GPU_CONF_MISSING'
+echo '---GPU_END---'
+
+Login incorrect
+neuraldrive login: echo '---TLS_START---'
+Password: 
+echo '---TLS_END---'
+echo '---SVCDETAIL:neuraldrive-gpu-detect:start---'
+
+Login incorrect
+Maximum number of tries exceeded (5)
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: echo '---SVCDETAIL:neuraldrive-gpu-detect:end---'
+echo '---SVCDETAIL:neuraldrive-certs:start---'
+systemctl status neuraldrive-certs.service --no-pager --lines=20 2>&1 || true
+echo '---SVCDETAIL:neuraldrive-certs:end---'
+echo '---SVCDETAIL:neuraldrive-setup:start---'
+systemctl status neuraldrive-setup.service --no-pager --lines=20 2>&1 || true
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: echo '---SVCDETAIL:neuraldrive-zram:end---'
+echo '---SVCDETAIL:neuraldrive-show-ip:start---'
+systemctl status neuraldrive-show-ip.service --no-pager --lines=20 2>&1 || true
+echo '---SVCDETAIL:neuraldrive-show-ip:end---'
+echo '---SVCDETAIL:neuraldrive-ollama:start---'
+systemctl status neuraldrive-ollama.service --no-pager --lines=20 2>&1 || true
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: systemctl status neuraldrive-caddy.service --no-pager --lines=20 2>&1 || true
+echo '---SVCDETAIL:neuraldrive-caddy:end---'
+echo '---SVCDETAIL:neuraldrive-webui:start---'
+systemctl status neuraldrive-webui.service --no-pager --lines=20 2>&1 || true
+echo '---SVCDETAIL:neuraldrive-webui:end---'
+echo '---SVCDETAIL:neuraldrive-system-api:start---'
+systemct
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: echo '---SVCDETAIL:neuraldrive-system-api:end---'
+echo '---SVCDETAIL:neuraldrive-gpu-monitor:start---'
+systemctl status neuraldrive-gpu-monitor.service --no-pager --lines=20 2>&1 || true
+echo '---SVCDETAIL:neuraldrive-gpu-monitor:end---'
+echo '---SVCDETAIL:neuraldrive-storage-monitor:start---'
+systemctl status neuraldrive-storage-monitor.service --no-pager --lines=20 2>&1 || true
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: printf 'SVCSTATE:neuraldrive-gpu-detect:%s\n' "$(systemctl is-active neuraldrive-gpu-detect.service 2>/dev/null || echo unknown)"
+printf 'SVCSTATE:neuraldrive-certs:%s\n' "$(systemctl is-active neuraldrive-certs.service 2>/dev/null || echo unknown)"
+printf 'SVCSTATE:neuraldrive-setup:%s\n' "$(systemctl is-active neuraldrive-setup.service 2>/dev/null || echo unknown)"
+printf 'SVCSTATE:neuraldrive-zram:%s\n' "$(systemctl is-active neuraldrive-zram.service 2>/dev/null || echo unknown)"
+printf 'SVCSTATE:neuraldrive-show-ip:%s\n' "$(systemctl is-active neuraldrive-show-ip.service 2>/dev/null || echo unknown)"
+printf 'SVCSTATE:neuraldrive-ollama:%s\n' "$(systemctl is-active neuraldrive-ollama.service 2>/dev/null || echo unknown)"
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: printf 'SVCSTATE:neuraldrive-system-api:%s\n' "$(systemctl is-active neuraldrive-system-api.service 2>/dev/null || echo unknown)"
+printf 'SVCSTATE:neuraldrive-gpu-monitor:%s\n' "$(systemctl is-active neuraldrive-gpu-monitor.service 2>/dev/null || echo unknown)"
+printf 'SVCSTATE:neuraldrive-storage-monitor:%s\n' "$(systemctl is-active neuraldrive-storage-monitor.service 2>/dev/null || echo unknown)"
+echo '---ACTIVE_CHECK_END---'
+echo '---JOURNAL_START---'
+sudo journalctl -p err --no-pager -n 100 --no-hostname 2>/dev/null || echo 'JOURNAL_UNAVAILABLE'
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: echo '---JOURNAL_END---'
+Password: 
+curl -sf -k https://localhost:8443/health --max-time 5 >/dev/null 2>&1 && echo 'EP:caddy_health:pass' || echo 'EP:caddy_health:fail'
+curl -sf -k -o /dev/null -w 'EP:webui_https:%{http_code}\n' https://localhost/ --max-time 5 2>/dev/null || echo 'EP:webui_https:fail'
+
+Login incorrect
+neuraldrive login: curl -sf http://localhost:11434/api/tags --max-time 5 >/dev/null 2>&1 && echo 'EP:ollama_api:pass' || echo 'EP:ollama_api:fail'
+Password: 
+echo '---EP_END---'
+
+Login incorrect
+neuraldrive login: echo '---RESOURCES_START---'
+Password: 
+free -h
+
+Login incorrect
+neuraldrive login: echo '---RESOURCES_END---'
+Password: 
+
+Login incorrect
+neuraldrive login: 
+Login timed out after 60 seconds.
+
+Debian GNU/Linux 12 neuraldrive ttyS0
+
+neuraldrive login: qemu-system-x86_64: terminating on signal 15 from pid 213262 (bash)

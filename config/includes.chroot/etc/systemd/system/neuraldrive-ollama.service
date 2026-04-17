@@ -4,7 +4,7 @@ After=network.target neuraldrive-gpu-detect.service
 Requires=neuraldrive-gpu-detect.service
 
 [Service]
-Environment=HOME=/var/lib/neuraldrive
+Environment=HOME=/var/lib/neuraldrive/ollama
 EnvironmentFile=/etc/neuraldrive/ollama.conf
 ExecStartPre=/usr/bin/mkdir -p /var/lib/neuraldrive/models
 ExecStart=/usr/local/bin/ollama serve

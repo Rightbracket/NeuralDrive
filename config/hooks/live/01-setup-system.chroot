@@ -16,10 +16,18 @@ chmod 440 /etc/sudoers.d/neuraldrive-admin
 
 mkdir -p /etc/neuraldrive/tls \
          /var/lib/neuraldrive/models/{manifests,blobs} \
+         /var/lib/neuraldrive/ollama \
          /var/lib/neuraldrive/webui \
          /var/log/neuraldrive \
          /usr/lib/neuraldrive \
          /run/neuraldrive
+
+# Service users must own their data directories
+chown -R neuraldrive-ollama:neuraldrive-ollama \
+    /var/lib/neuraldrive/models \
+    /var/lib/neuraldrive/ollama
+chown -R neuraldrive-webui:neuraldrive-webui \
+    /var/lib/neuraldrive/webui
 
 systemctl enable neuraldrive-setup.service
 systemctl enable neuraldrive-gpu-detect.service
