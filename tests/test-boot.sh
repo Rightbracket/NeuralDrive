@@ -79,8 +79,10 @@ if ! command -v qemu-system-x86_64 &>/dev/null; then
 fi
 
 KVM_FLAG=""
+CPU_FLAG="-cpu max"   # enable all emulatable features (x86-64-v2+ for numpy)
 if [ -w /dev/kvm ]; then
     KVM_FLAG="-enable-kvm"
+    CPU_FLAG="-cpu host"  # pass through host CPU features
     echo "KVM acceleration available."
 else
     echo "WARNING: KVM not available, using software emulation (slow)."
@@ -104,6 +106,7 @@ exec 3<>"$QEMU_IN"
 echo "Starting QEMU (UEFI, serial via FIFO)..."
 qemu-system-x86_64 \
     $KVM_FLAG \
+    $CPU_FLAG \
     -m 4G \
     -cdrom "$ISO_PATH" \
     -bios /usr/share/ovmf/OVMF.fd \
