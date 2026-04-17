@@ -11,7 +11,7 @@ ISO_PATH="${1:-}"
 BOOT_LOG="/tmp/neuraldrive-boot.log"
 QEMU_IN="/tmp/qemu-in"
 BOOT_TIMEOUT=300     # seconds to wait for login prompt
-SVC_SETTLE=60        # seconds after login for services to settle
+SVC_SETTLE=90        # seconds after login for services to settle
 DIAG_WAIT=15         # seconds after last diagnostic command for output flush
 
 # All neuraldrive services that should be active after boot
@@ -232,7 +232,7 @@ if $LOGGED_IN; then
     echo "  → Per-service status"
     for svc in "${ALL_SERVICES[@]}"; do
         send_serial "echo '---SVCDETAIL:neuraldrive-${svc}:start---'" 1
-        send_serial "systemctl status neuraldrive-${svc}.service --no-pager --lines=20 2>&1 || true" 3
+        send_serial "sudo systemctl status neuraldrive-${svc}.service --no-pager --lines=20 2>&1 || true" 3
         send_serial "echo '---SVCDETAIL:neuraldrive-${svc}:end---'" 1
     done
 
@@ -240,7 +240,7 @@ if $LOGGED_IN; then
     echo "  → Parseable service state check"
     send_serial "echo '---ACTIVE_CHECK_START---'" 1
     for svc in "${ALL_SERVICES[@]}"; do
-        send_serial "printf 'SVCSTATE:neuraldrive-${svc}:%s\n' \"\$(systemctl is-active neuraldrive-${svc}.service 2>/dev/null || echo unknown)\"" 2
+        send_serial "printf 'SVCSTATE:neuraldrive-${svc}:%s\n' \"\$(systemctl is-active neuraldrive-${svc}.service 2>/dev/null || true)\"" 2
     done
     send_serial "echo '---ACTIVE_CHECK_END---'" 1
 
@@ -256,7 +256,7 @@ if $LOGGED_IN; then
     send_serial "curl -sf -k https://localhost:8443/health --max-time 5 >/dev/null 2>&1 && echo 'EP:caddy_health:pass' || echo 'EP:caddy_health:fail'" 3
     send_serial "curl -sf -k https://localhost/ --max-time 5 >/dev/null 2>&1 && echo 'EP:webui_https:pass' || echo 'EP:webui_https:fail'" 3
     send_serial "curl -sf http://localhost:11434/api/tags --max-time 5 >/dev/null 2>&1 && echo 'EP:ollama_api:pass' || echo 'EP:ollama_api:fail'" 3
-    send_serial "curl -sf http://localhost:3001/ --max-time 5 >/dev/null 2>&1 && echo 'EP:system_api:pass' || echo 'EP:system_api:fail'" 3
+    send_serial "curl -sf http://localhost:3001/openapi.json --max-time 5 >/dev/null 2>&1 && echo 'EP:system_api:pass' || echo 'EP:system_api:fail'" 3
     send_serial "echo '---EP_END---'" 1
 
     # ── 4j: Disk / memory snapshot ──

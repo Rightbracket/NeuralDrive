@@ -14,6 +14,8 @@ EOF
 cat > /etc/neuraldrive/webui.env << 'EOF'
 OLLAMA_BASE_URL=http://localhost:11434
 DATA_DIR=/var/lib/neuraldrive/webui
+PORT=3000
+HOST=0.0.0.0
 ENABLE_SIGNUP=false
 DEFAULT_USER_ROLE=user
 WEBUI_AUTH=true
