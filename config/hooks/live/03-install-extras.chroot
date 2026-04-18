@@ -4,5 +4,9 @@ set -e
 curl -fsSL "https://caddyserver.com/api/download?os=linux&arch=amd64" -o /usr/local/bin/caddy
 chmod +x /usr/local/bin/caddy
 
-curl -fsSL https://ollama.com/download/ollama-linux-amd64 -o /usr/local/bin/ollama
+# Install zstd for decompressing Ollama tarball
+apt-get install -y --no-install-recommends zstd
+
+# Ollama now distributes as a zstd-compressed tarball (bin/ollama + lib/ollama/)
+curl -fsSL "https://ollama.com/download/ollama-linux-amd64.tar.zst" | tar --zstd -xf - -C /usr/local
 chmod +x /usr/local/bin/ollama

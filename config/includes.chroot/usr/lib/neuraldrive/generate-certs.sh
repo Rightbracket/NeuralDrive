@@ -12,7 +12,10 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -nodes \
   -keyout "$CERT_DIR/server.key" -out "$CERT_DIR/server.crt" \
   -subj "/C=US/ST=State/L=City/O=NeuralDrive/CN=neuraldrive.local" \
   -addext "subjectAltName=${SAN}"
-chmod 600 "$CERT_DIR/server.key"
+# Caddy runs as neuraldrive-caddy — grant group read access to the private key
+chown root:neuraldrive-caddy "$CERT_DIR/server.key"
+chmod 640 "$CERT_DIR/server.key"
+chown root:neuraldrive-caddy "$CERT_DIR/server.crt"
 
 cp "$CERT_DIR/server.crt" "$CERT_DIR/neuraldrive-ca.crt"
 chmod 644 "$CERT_DIR/neuraldrive-ca.crt"

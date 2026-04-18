@@ -14,19 +14,22 @@ EOF
 cat > /etc/neuraldrive/webui.env << 'EOF'
 OLLAMA_BASE_URL=http://localhost:11434
 DATA_DIR=/var/lib/neuraldrive/webui
+PORT=3000
+HOST=0.0.0.0
 ENABLE_SIGNUP=false
 DEFAULT_USER_ROLE=user
 WEBUI_AUTH=true
 WEBUI_NAME=NeuralDrive
 ENABLE_EASTER_EGGS=false
+RAG_EMBEDDING_ENGINE=ollama
+ENABLE_RAG_WEB_SEARCH=false
+ENABLE_IMAGE_GENERATION=false
+SAFE_MODE=true
+ENABLE_COMMUNITY_SHARING=false
 EOF
 
 cat > /etc/neuraldrive/api.env << 'EOF'
 NEURALDRIVE_API_KEY_FILE=/etc/neuraldrive/api.key
-EOF
-
-cat > /etc/neuraldrive/version << 'EOF'
-dev-snapshot
 EOF
 
 echo "Default configuration files generated."

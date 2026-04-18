@@ -17,8 +17,7 @@ ProtectHome=true
 NoNewPrivileges=true
 PrivateTmp=true
 DeviceAllow=/dev/null rw
-ReadOnlyPaths=/usr/lib/neuraldrive/webui
-ReadWritePaths=/var/lib/neuraldrive/webui
+ReadWritePaths=/var/lib/neuraldrive/webui /usr/lib/neuraldrive/webui
 
 [Install]
 WantedBy=multi-user.target

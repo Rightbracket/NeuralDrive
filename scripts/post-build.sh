@@ -11,7 +11,16 @@ if [ -z "$ISO_FILE" ]; then
     exit 1
 fi
 
-FILENAME="neuraldrive-$(date +%Y.%m).iso"
+# Version derived from build.sh via includes.chroot; read it back for filename
+if [ -f config/includes.chroot/etc/neuraldrive/version ]; then
+    ND_VERSION="$(cat config/includes.chroot/etc/neuraldrive/version)"
+elif [ -n "${NEURALDRIVE_VERSION:-}" ]; then
+    ND_VERSION="$NEURALDRIVE_VERSION"
+else
+    ND_VERSION="dev-$(date +%Y.%m.%d)-$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
+fi
+
+FILENAME="neuraldrive-${ND_VERSION}.iso"
 if [ -n "$CONFIG" ] && command -v yq &>/dev/null; then
     CUSTOM_NAME=$(yq '.neuraldrive.output.filename' "$CONFIG" 2>/dev/null)
     if [ "$CUSTOM_NAME" != "null" ] && [ -n "$CUSTOM_NAME" ]; then

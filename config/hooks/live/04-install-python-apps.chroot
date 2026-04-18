@@ -1,14 +1,120 @@
 #!/bin/sh
 set -e
 
+# --- open-webui (minimal install — no torch/transformers/ML deps) ---
 python3 -m venv /usr/lib/neuraldrive/webui/venv
 /usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir --upgrade pip
-/usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir open-webui
 
+# Install open-webui wheel without its dependency chain
+/usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir --no-deps open-webui
+
+# Install only the minimal backend requirements (excludes torch, sentence-transformers,
+# faster-whisper, transformers, accelerate, and ~50 other heavy ML/cloud packages).
+# Based on upstream's backend/requirements-min.txt (WIP minimal docker image reference).
+cat > /tmp/requirements-min.txt << 'REQS'
+fastapi==0.135.1
+uvicorn[standard]==0.41.0
+pydantic==2.12.5
+python-multipart==0.0.22
+itsdangerous==2.2.0
+
+python-socketio==5.16.1
+python-jose==3.5.0
+cryptography
+bcrypt==5.0.0
+argon2-cffi==25.1.0
+PyJWT[crypto]==2.11.0
+authlib==1.6.9
+
+requests==2.32.5
+aiohttp==3.13.2
+async-timeout
+aiocache
+aiofiles
+starlette-compress==1.7.0
+Brotli==1.1.0
+httpx[socks,http2,zstd,cli,brotli]==0.28.1
+starsessions[redis]==2.2.1
+
+sqlalchemy==2.0.48
+alembic==1.18.4
+peewee==3.19.0
+peewee-migrate==1.14.3
+
+pycrdt==0.12.47
+redis
+
+APScheduler==3.11.2
+RestrictedPython==8.1
+
+loguru==0.7.3
+asgiref==3.11.1
+
+mcp==1.26.0
+openai
+
+langchain==1.2.10
+langchain-community==0.4.1
+langchain-classic==1.0.1
+langchain-text-splitters==1.1.1
+
+fake-useragent==2.2.0
+
+chromadb==1.5.2
+black==26.1.0
+pydub
+chardet==5.2.0
+beautifulsoup4
+
+markdown
+pymdown-extensions
+opentelemetry-api
+googleapis-common-protos
+validators
+psutil
+pillow
+pypdf
+fpdf2
+ftfy
+rank-bm25
+python-mimeparse
+pytz
+docx2txt
+python-pptx
+openpyxl
+xlrd
+pyxlsb
+msoffcrypto-tool
+ldap3
+pymysql
+opensearch-py
+anthropic
+ddgs
+pytube
+youtube-transcript-api
+nltk
+tiktoken
+boto3
+google-cloud-storage
+azure-identity
+azure-storage-blob
+REQS
+
+/usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir -r /tmp/requirements-min.txt
+rm -f /tmp/requirements-min.txt
+
+# WebUI service runs as neuraldrive-webui; venv must be writable for static asset caching, .pyc, etc.
+chown -R neuraldrive-webui:neuraldrive-webui /usr/lib/neuraldrive/webui/venv
+
+# --- gpu-hot (GPU monitoring dashboard) ---
 python3 -m venv /usr/lib/neuraldrive/gpu-monitor/venv
 /usr/lib/neuraldrive/gpu-monitor/venv/bin/pip install --no-cache-dir --upgrade pip
-/usr/lib/neuraldrive/gpu-monitor/venv/bin/pip install --no-cache-dir gpu-hot
+# gpu-hot is not a PyPI package; clone from source and install deps
+apt-get install -y --no-install-recommends git
+git clone --depth 1 https://github.com/psalias2006/gpu-hot.git /usr/lib/neuraldrive/gpu-monitor/gpu-hot
+/usr/lib/neuraldrive/gpu-monitor/venv/bin/pip install --no-cache-dir -r /usr/lib/neuraldrive/gpu-monitor/gpu-hot/requirements.txt
 
+# --- TUI (terminal interface) ---
 python3 -m venv /usr/lib/neuraldrive/tui/venv
 /usr/lib/neuraldrive/tui/venv/bin/pip install --no-cache-dir --upgrade pip
 /usr/lib/neuraldrive/tui/venv/bin/pip install --no-cache-dir textual psutil httpx rich
@@ -19,6 +125,7 @@ exec /usr/lib/neuraldrive/tui/venv/bin/python /usr/lib/neuraldrive/tui/main.py
 LAUNCHER
 chmod +x /usr/local/bin/neuraldrive-tui
 
+# --- System API ---
 python3 -m venv /usr/lib/neuraldrive/api/venv
 /usr/lib/neuraldrive/api/venv/bin/pip install --no-cache-dir --upgrade pip
 /usr/lib/neuraldrive/api/venv/bin/pip install --no-cache-dir fastapi uvicorn psutil httpx

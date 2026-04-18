@@ -26,8 +26,8 @@ parted
 gdisk
 cryptsetup
 
-# Firmware
-linux-firmware
+# Firmware (GPU-specific only — no WiFi/Bluetooth/sound firmware)
+# firmware-linux-nonfree removed: metapackage whose deps are already listed below
 firmware-misc-nonfree
 firmware-amd-graphics
 

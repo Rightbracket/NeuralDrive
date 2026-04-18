@@ -1,32 +1,96 @@
 name: NeuralDrive Build & Test
-on: [push, workflow_dispatch]
+on:
+  pull_request:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build-iso:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      # remove unused packages to free up disk space for the build
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /usr/local/share/boost /usr/local/graalvm /usr/local/.ghcup \
+            /usr/local/share/powershell /usr/local/share/chromium \
+            /usr/local/lib/node_modules
+          sudo docker image prune -af
+          df -h /
+
+      - name: Derive version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=dev-$(date +%Y.%m.%d)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build ISO via Docker
-        run: docker compose run builder
+        run: docker compose run -e NEURALDRIVE_VERSION=${{ steps.version.outputs.value }} builder
+
+      - name: Inspect ISO GRUB config
+        run: |
+          ISO=$(ls output/neuraldrive-*.iso)
+          mkdir -p /tmp/iso_mount
+          sudo mount -o loop,ro "$ISO" /tmp/iso_mount
+          echo "=== /live/ directory contents ==="
+          ls -la /tmp/iso_mount/live/ 2>/dev/null || echo "/live/ directory NOT FOUND"
+          echo "=== /.disk/ contents ==="
+          ls -la /tmp/iso_mount/.disk/ 2>/dev/null || echo "/.disk/ directory NOT FOUND"
+          cat /tmp/iso_mount/.disk/info 2>/dev/null || echo "No .disk/info"
+          echo "=== GRUB config files ==="
+          find /tmp/iso_mount -name "grub.cfg" -o -name "*.cfg" | grep -i grub | head -20
+          echo "=== Main grub.cfg ==="
+          cat /tmp/iso_mount/boot/grub/grub.cfg 2>/dev/null || echo "No /boot/grub/grub.cfg"
+          echo "=== EFI embedded grub.cfg (x86_64) ==="
+          cat /tmp/iso_mount/boot/grub/x86_64-efi/grub.cfg 2>/dev/null || echo "Not found"
+          echo "=== EFI embedded grub.cfg (i386) ==="
+          cat /tmp/iso_mount/boot/grub/i386-efi/grub.cfg 2>/dev/null || echo "Not found"
+          echo "=== Kernel cmdline check ==="
+          grep -r "console=" /tmp/iso_mount/boot/grub/grub.cfg 2>/dev/null || echo "No console= in grub.cfg"
+          sudo umount /tmp/iso_mount
 
       - name: Run Boot Test (QEMU)
+        id: boot-test
         run: |
+          sudo apt-get update
           sudo apt-get install -y qemu-system-x86 ovmf
+          sudo chmod 666 /dev/kvm
           chmod +x tests/test-boot.sh
           tests/test-boot.sh output/neuraldrive-*.iso
 
-      - name: Upload Artifact
+      - name: Upload boot log
+        if: always() && steps.boot-test.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
-          name: neuraldrive-iso
-          path: output/neuraldrive-*.iso
-          retention-days: 30
+          name: boot-diagnostic-log
+          path: /tmp/neuraldrive-boot.log
+          retention-days: 14
+
+      # TODO: Upload ISO to Internet Archive on release tags.
+      # See plan/future-iso-storage.md for setup instructions.
+      # - name: Upload ISO to Internet Archive
+      #   if: startsWith(github.ref, 'refs/tags/v')
+      #   run: |
+      #     pip install internetarchive
+      #     ia upload neuraldrive-${{ github.ref_name }} output/neuraldrive-*.iso \
+      #       --metadata="title:NeuralDrive ${{ github.ref_name }}" \
+      #       --metadata="mediatype:software" \
+      #       --metadata="collection:opensource" \
+      #       --retries 10
+      #   env:
+      #     IA_ACCESS_KEY_ID: ${{ secrets.IA_ACCESS_KEY }}
+      #     IA_SECRET_ACCESS_KEY: ${{ secrets.IA_SECRET_KEY }}
 
   validate-config:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install yq
         run: |
