@@ -21,6 +21,9 @@ DEFAULT_USER_ROLE=user
 WEBUI_AUTH=true
 WEBUI_NAME=NeuralDrive
 ENABLE_EASTER_EGGS=false
+RAG_EMBEDDING_ENGINE=ollama
+ENABLE_RAG_WEB_SEARCH=false
+ENABLE_IMAGE_GENERATION=false
 EOF
 
 cat > /etc/neuraldrive/api.env << 'EOF'

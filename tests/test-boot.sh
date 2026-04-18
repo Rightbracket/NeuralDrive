@@ -265,7 +265,8 @@ if $LOGGED_IN; then
     echo "  → Internal endpoint probes"
     send_serial "echo '---EP_START---'" 1
     send_serial "curl -sf -k https://localhost:8443/health --max-time 5 >/dev/null 2>&1 && echo 'EP:caddy_health:pass' || echo 'EP:caddy_health:fail'" 3
-    send_serial "curl -sf -k https://localhost/ --max-time 5 >/dev/null 2>&1 && echo 'EP:webui_https:pass' || echo 'EP:webui_https:fail'" 3
+    # WebUI startup is slow in QEMU (migrations, plugin init); retry with backoff
+    send_serial "r=fail; for i in 1 2 3 4 5 6; do curl -sf -k https://localhost/ --max-time 10 >/dev/null 2>&1 && r=pass && break; sleep 15; done; echo \"EP:webui_https:\$r\"" 120
     send_serial "curl -sf http://localhost:11434/api/tags --max-time 5 >/dev/null 2>&1 && echo 'EP:ollama_api:pass' || echo 'EP:ollama_api:fail'" 3
     send_serial "curl -sf http://localhost:3001/openapi.json --max-time 5 >/dev/null 2>&1 && echo 'EP:system_api:pass' || echo 'EP:system_api:fail'" 3
     send_serial "echo '---EP_END---'" 1
