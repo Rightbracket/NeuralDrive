@@ -39,16 +39,16 @@ When you're done, pull the USB stick out. The host machine is untouched.
 └──────────┴─────────────┴─────────────────┴───────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────┐
-│  Caddy Reverse Proxy        :443 Web UI  /  :8443 API Gateway   │
+│  Caddy Reverse Proxy        :443 Web UI  /  :8443 API Gateway    │
 ├──────────────┬──────────────┬────────────────┬───────────────────┤
 │  Ollama      │  Open WebUI  │  System API    │  GPU Hot          │
 │  LLM Engine  │  Dashboard   │  Management    │  Monitoring       │
 │  :11434      │  :3000       │  :3001         │  :1312            │
 ├──────────────┴──────────────┴────────────────┴───────────────────┤
 │  GPU Auto-Detection                                              │
-│  NVIDIA (CUDA 12.x) · AMD (ROCm 6.x) · Intel Arc · CPU fallback│
+│  NVIDIA (CUDA 12.x) · AMD (ROCm 6.x) · Intel Arc · CPU fallback. │
 ├──────────────────────────────────────────────────────────────────┤
-│  Debian 12 (bookworm)  ·  Linux 6.1 LTS  ·  Read-only rootfs   │
+│  Debian 12 (bookworm)  ·  Linux 6.1 LTS  ·  Read-only rootfs     │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -129,17 +129,17 @@ The terminal interface launches automatically on the console. No network require
 
 ```
 ┌────────────────── NeuralDrive v1.0.0 ────────────────────────────┐
-│ Host: neuraldrive.local   │ Uptime: 2h 15m  │ IP: 192.168.1.50  │
+│ Host: neuraldrive.local   │ Uptime: 2h 15m  │ IP: 192.168.1.50   │
 ├──────────────────────────────────────────────────────────────────┤
-│ GPU: NVIDIA RTX 4090 │ VRAM: 12.4/24.0 GB │ Temp: 65°C │  85%  │
-│ CPU: 12%             │ RAM: 18.2/64.0 GB  │ Disk: 45.2 GB      │
+│ GPU: NVIDIA RTX 4090 │ VRAM: 12.4/24.0 GB │ Temp: 65°C │  85%    │
+│ CPU: 12%             │ RAM: 18.2/64.0 GB  │ Disk: 45.2 GB        │
 ├──────────────────────────────────────────────────────────────────┤
 │ LOADED MODELS                                                    │
-│ ● llama3.1:8b        [GPU] 4.7 GB   85 req/min                  │
-│ ● codestral:latest   [GPU] 8.2 GB   12 req/min                  │
+│ ● llama3.1:8b        [GPU] 4.7 GB   85 req/min                   │
+│ ● codestral:latest   [GPU] 8.2 GB   12 req/min                   │
 │ ○ phi3:mini           ---  (not loaded)                          │
 ├──────────────────────────────────────────────────────────────────┤
-│ [M]odels  [S]ervices  [N]etwork  [L]ogs  [C]hat  [Q]uit         │
+│ [M]odels  [S]ervices  [N]etwork  [L]ogs  [C]hat  [Q]uit          │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
