@@ -95,6 +95,9 @@ youtube-transcript-api
 nltk
 tiktoken
 boto3
+google-cloud-storage
+azure-identity
+azure-storage-blob
 REQS
 
 /usr/lib/neuraldrive/webui/venv/bin/pip install --no-cache-dir -r /tmp/requirements-min.txt
