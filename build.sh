@@ -95,6 +95,7 @@ if [ -z "$ISO_FILE" ]; then
 fi
 
 FINAL_NAME="neuraldrive-${ND_VERSION}.iso"
+
 mv "$ISO_FILE" "${OUTPUT_DIR}/${FINAL_NAME}"
 
 # Generate checksums

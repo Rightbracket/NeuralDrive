@@ -24,33 +24,91 @@ The script performs the following actions:
 
 ## Manual Writing Options
 
-If you cannot use the automated script, choose one of the following manual methods.
+If you cannot use the automated script, choose one of the following manual methods based on your operating system.
 
-### Option B: Manual dd and Persistence Setup
+### Linux: Manual dd
 
-This method is standard for Linux and macOS users who prefer the command line.
+1. Identify your USB device:
+   ```bash
+   lsblk
+   ```
+   Look for your USB drive by size. It will appear as `/dev/sdX` or `/dev/nvmeXn1`. **Do not use a partition path** like `/dev/sdb1` — use the whole-disk device.
 
-1. Write the ISO to the USB device:
+2. Unmount any mounted partitions on the device:
+   ```bash
+   sudo umount /dev/sdX*
+   ```
+
+3. Write the ISO to the USB device:
    ```bash
    sudo dd if=neuraldrive.iso of=/dev/sdX bs=4M conv=fsync status=progress
    ```
-2. Once the write completes, initialize the persistence partition:
+
+4. Initialize the persistence partition:
    ```bash
    sudo /usr/lib/neuraldrive/prepare-usb.sh /dev/sdX
    ```
    The `prepare-usb.sh` script creates an ext4 partition labeled "persistence" and writes the necessary `persistence.conf` file to enable union mounts.
 
-### Option C: GUI Tools (Balena Etcher or Rufus)
+### macOS: dd with diskutil
 
-You can use common graphical utilities like Balena Etcher or Rufus to write the ISO.
+macOS uses different device paths and a slightly different `dd` syntax.
 
-1. Select the `neuraldrive.iso` file in your GUI tool.
-2. Select your USB drive and click Flash/Start.
-3. **Important:** After the GUI tool finishes, you must still run the `prepare-usb.sh` script (see Option B, step 2) on a Linux system to enable data persistence. Without this step, your changes will be lost on every reboot.
+1. Identify your USB device:
+   ```bash
+   diskutil list
+   ```
+   Look for your USB drive by size. It will appear as `/dev/diskN` (e.g., `/dev/disk4`). **Do not use a partition path** like `/dev/disk4s1` — use the whole-disk device.
 
-### Option D: Ventoy
+2. Unmount the USB drive (this does not eject it):
+   ```bash
+   diskutil unmountDisk /dev/diskN
+   ```
 
-NeuralDrive is compatible with Ventoy. Simply copy the `neuraldrive.iso` file to your Ventoy-enabled USB drive. Note that persistence setup via Ventoy may require additional manual configuration not covered by the standard `prepare-usb.sh` script.
+3. Write the ISO using the raw device (`rdiskN`) for significantly faster writes:
+   ```bash
+   sudo dd if=neuraldrive.iso of=/dev/rdiskN bs=4m status=progress
+   ```
+   > **Note:** macOS `dd` uses lowercase `4m` (not `4M`), and `conv=fsync` is not supported. The raw device path `/dev/rdiskN` bypasses the buffer cache and is roughly 10x faster than `/dev/diskN`.
+
+4. Eject the drive:
+   ```bash
+   diskutil eject /dev/diskN
+   ```
+
+5. **Persistence partition:** The `prepare-usb.sh` script requires Linux tools (`sfdisk`, `mkfs.ext4`) and cannot run directly on macOS. To set up persistence, choose one of:
+   - **Boot NeuralDrive first:** Boot the USB on the target machine. On first boot, the system will detect the missing persistence partition and offer to create it.
+   - **Use the Docker builder:** Pass the USB device into the builder container and run the script there.
+   - **Use any Linux machine:** Mount the USB on a Linux system and run `sudo /usr/lib/neuraldrive/prepare-usb.sh /dev/sdX`.
+
+### Windows: Rufus
+
+[Rufus](https://rufus.ie/) is a free, open-source tool for writing ISO images on Windows.
+
+1. Download and run Rufus.
+2. Under **Device**, select your USB drive.
+3. Under **Boot selection**, click **SELECT** and choose the `neuraldrive.iso` file.
+4. Set **Partition scheme** to **GPT** and **Target system** to **UEFI**.
+5. Click **START** and wait for the write to complete.
+
+> **Note:** Rufus may offer to write in "ISO Image mode" or "DD Image mode." Either mode works. If you encounter boot issues, try DD Image mode.
+
+6. **Persistence partition:** Rufus does not create the NeuralDrive persistence partition. After flashing, set up persistence using one of the methods described in the macOS section above (boot the target machine, use a Linux system, or use the Docker builder).
+
+### Cross-Platform GUI: Balena Etcher
+
+[Balena Etcher](https://etcher.balena.io/) works on Linux, macOS, and Windows.
+
+1. Download and install Balena Etcher.
+2. Click **Flash from file** and select the `neuraldrive.iso` file.
+3. Click **Select target** and choose your USB drive.
+4. Click **Flash** and wait for the write and verification to complete.
+
+**Important:** Balena Etcher does not create the persistence partition. Follow the persistence setup instructions for your platform described above.
+
+### Ventoy
+
+NeuralDrive is compatible with [Ventoy](https://ventoy.net/). Simply copy the `neuraldrive.iso` file to your Ventoy-enabled USB drive. Note that persistence setup via Ventoy may require additional manual configuration not covered by the standard `prepare-usb.sh` script.
 
 ## Partition Layout
 

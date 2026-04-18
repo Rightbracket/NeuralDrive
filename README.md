@@ -85,9 +85,21 @@ The root filesystem is immutable (SquashFS). Downloaded models, user accounts, a
 ## Quick start
 
 ```bash
-# 1. Flash the ISO
+# 1. Flash the ISO to a USB drive
+
+# Linux:
 sudo ./scripts/neuraldrive-flash.sh neuraldrive.iso /dev/sdX
 
+# macOS:
+diskutil unmountDisk /dev/diskN
+sudo dd if=neuraldrive.iso of=/dev/rdiskN bs=4m status=progress
+
+# Windows / any platform: use Balena Etcher (https://etcher.balena.io/)
+```
+
+See the [Writing the USB Drive](docs/user-guide/src/getting-started/writing-usb.md) guide for full platform-specific instructions and persistence partition setup.
+
+```bash
 # 2. Boot the target machine from USB
 
 # 3. Complete the first-boot wizard on the console

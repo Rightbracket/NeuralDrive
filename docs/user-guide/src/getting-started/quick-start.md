@@ -12,16 +12,28 @@ This guide describes how to flash NeuralDrive to a USB drive and start your firs
 
 ## Step 1: Flash the USB Drive
 
-Using the official flashing script is recommended as it automatically handles both image writing and the creation of a persistence partition.
+The method depends on which operating system you are using to write the USB drive.
 
-1. Open a terminal.
-2. Run the flashing script with root privileges:
-   ```bash
-   sudo ./scripts/neuraldrive-flash.sh neuraldrive.iso /dev/sdX
-   ```
-   *Replace `/dev/sdX` with the correct device path for your USB drive.*
+**Linux** — Use the automated flash script for the simplest experience:
+```bash
+sudo ./scripts/neuraldrive-flash.sh neuraldrive.iso /dev/sdX
+```
+This writes the image and creates the persistence partition in one step.
 
-**Alternative**: Use Balena Etcher to write the ISO to the USB, then run `sudo ./scripts/prepare-usb.sh /dev/sdX` to initialize the persistence partition manually.
+**macOS** — Use `dd` with macOS device paths:
+```bash
+diskutil list                                          # find your USB (e.g., /dev/disk4)
+diskutil unmountDisk /dev/diskN
+sudo dd if=neuraldrive.iso of=/dev/rdiskN bs=4m status=progress
+diskutil eject /dev/diskN
+```
+
+**Windows** — Use [Rufus](https://rufus.ie/) or [Balena Etcher](https://etcher.balena.io/) to write the ISO to your USB drive.
+
+**Any platform** — [Balena Etcher](https://etcher.balena.io/) provides a graphical interface that works on Linux, macOS, and Windows.
+
+> [!NOTE]
+> On macOS and Windows, the persistence partition cannot be created during flashing. NeuralDrive will detect this on first boot and offer to set it up automatically. For full details on each method and persistence setup, see [Writing the USB Drive](writing-usb.md).
 
 ## Step 2: Boot from USB
 
