@@ -18,7 +18,17 @@ EOF
 cat >> /home/neuraldrive-admin/.profile << 'PROFILE'
 
 if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ]; then
-    exec /usr/local/bin/neuraldrive-tui
+    /usr/local/bin/neuraldrive-tui
+    RC=$?
+    if [ $RC -ne 0 ]; then
+        echo ""
+        echo "============================================"
+        echo "  NeuralDrive TUI exited with code $RC"
+        echo "  Dropping to shell. Run 'neuraldrive-tui'"
+        echo "  to retry, or 'journalctl -b' for logs."
+        echo "============================================"
+        echo ""
+    fi
 fi
 PROFILE
 
