@@ -8,6 +8,8 @@ Wants=network-online.target
 User=neuraldrive-caddy
 Group=neuraldrive-caddy
 EnvironmentFile=/etc/neuraldrive/caddy.env
+Environment=XDG_DATA_HOME=/var/lib/neuraldrive/caddy
+Environment=XDG_CONFIG_HOME=/var/lib/neuraldrive/caddy/config
 ExecStart=/usr/local/bin/caddy run --config /etc/neuraldrive/Caddyfile --adapter caddyfile
 ExecReload=/usr/local/bin/caddy reload --config /etc/neuraldrive/Caddyfile --adapter caddyfile
 Restart=always
@@ -21,7 +23,7 @@ ProtectHome=true
 NoNewPrivileges=true
 PrivateTmp=true
 ReadOnlyPaths=/usr/local/bin/caddy
-ReadWritePaths=/var/log/neuraldrive
+ReadWritePaths=/var/log/neuraldrive /var/lib/neuraldrive/caddy
 
 [Install]
 WantedBy=multi-user.target
