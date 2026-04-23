@@ -3,6 +3,20 @@ set -e
 
 echo "Cleaning up build-time packages and caches..."
 
+# Preserve DKMS-built NVIDIA kernel modules before cleanup.
+# The purge below removes nvidia-kernel-dkms, whose postrm deletes the .ko files.
+KVER=$(ls /lib/modules/ | grep -v '^\.' | head -1)
+NVIDIA_BACKUP=""
+if [ -n "$KVER" ] && [ -d "/lib/modules/${KVER}/updates/dkms" ]; then
+    NVIDIA_KO=$(find "/lib/modules/${KVER}/updates/dkms" -name "nvidia*.ko*" 2>/dev/null)
+    if [ -n "$NVIDIA_KO" ]; then
+        echo "Preserving NVIDIA kernel modules from /lib/modules/${KVER}/updates/dkms ..."
+        NVIDIA_BACKUP="/tmp/_nvidia_modules_backup"
+        mkdir -p "$NVIDIA_BACKUP"
+        cp -a "/lib/modules/${KVER}/updates/dkms/." "$NVIDIA_BACKUP/"
+    fi
+fi
+
 # Remove build-time packages no longer needed (all pip installs are done by now)
 apt-get purge -y --auto-remove \
     build-essential \
@@ -17,6 +31,16 @@ apt-get purge -y --auto-remove \
     libstdc++-12-dev \
     zstd \
     git || true
+
+# Restore NVIDIA kernel modules
+if [ -n "$NVIDIA_BACKUP" ] && [ -d "$NVIDIA_BACKUP" ]; then
+    echo "Restoring NVIDIA kernel modules to /lib/modules/${KVER}/updates/dkms ..."
+    mkdir -p "/lib/modules/${KVER}/updates/dkms"
+    cp -a "$NVIDIA_BACKUP/." "/lib/modules/${KVER}/updates/dkms/"
+    depmod "$KVER"
+    rm -rf "$NVIDIA_BACKUP"
+    echo "NVIDIA modules restored. depmod done."
+fi
 
 # Clean apt caches
 apt-get clean

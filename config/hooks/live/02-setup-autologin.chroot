@@ -18,16 +18,52 @@ EOF
 cat >> /home/neuraldrive-admin/.profile << 'PROFILE'
 
 if [ "$(tty)" = "/dev/tty1" ] && [ -z "$DISPLAY" ]; then
-    /usr/local/bin/neuraldrive-tui
-    RC=$?
-    if [ $RC -ne 0 ]; then
+    if [ "$TERM" = "linux" ]; then
+        # Raw Linux VT -- Textual TUI cannot render here.
+        # Show a simple status banner and drop to shell.
+        clear
         echo ""
         echo "============================================"
-        echo "  NeuralDrive TUI exited with code $RC"
-        echo "  Dropping to shell. Run 'neuraldrive-tui'"
-        echo "  to retry, or 'journalctl -b' for logs."
+        echo "         NeuralDrive Console"
         echo "============================================"
         echo ""
+        IP_ADDR=$(ip -4 route get 1 2>/dev/null | awk '{print $7; exit}')
+        echo "  Hostname:   $(hostname 2>/dev/null || echo neuraldrive)"
+        echo "  IP Address: ${IP_ADDR:-[no network]}"
+        echo ""
+        echo "  Dashboard:  https://${IP_ADDR:-<IP>}/"
+        echo "  API:        https://${IP_ADDR:-<IP>}:8443/v1"
+        echo ""
+        echo "  Services:"
+        for SVC in neuraldrive-ollama neuraldrive-caddy neuraldrive-webui neuraldrive-system-api; do
+            STATUS=$(systemctl is-active "$SVC" 2>/dev/null || echo "unknown")
+            SHORT=$(echo "$SVC" | sed 's/neuraldrive-//')
+            printf "    %-16s %s\n" "$SHORT" "$STATUS"
+        done
+        echo ""
+        echo "  Useful commands:"
+        echo "    neuraldrive-tui     Full TUI (use via SSH)"
+        echo "    journalctl -b       Boot logs"
+        echo "    systemctl status    Service status"
+        echo ""
+        echo "  For the full TUI, SSH in:"
+        echo "    ssh neuraldrive-admin@${IP_ADDR:-<IP>}"
+        echo ""
+        echo "============================================"
+        echo ""
+    else
+        # Capable terminal (SSH, screen, etc.) -- launch Textual TUI
+        /usr/local/bin/neuraldrive-tui
+        RC=$?
+        if [ $RC -ne 0 ]; then
+            echo ""
+            echo "============================================"
+            echo "  NeuralDrive TUI exited with code $RC"
+            echo "  Dropping to shell. Run 'neuraldrive-tui'"
+            echo "  to retry, or 'journalctl -b' for logs."
+            echo "============================================"
+            echo ""
+        fi
     fi
 fi
 PROFILE
