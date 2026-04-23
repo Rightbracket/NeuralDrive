@@ -19,6 +19,7 @@ mkdir -p /etc/neuraldrive/tls \
          /var/lib/neuraldrive/models/{manifests,blobs} \
          /var/lib/neuraldrive/ollama \
          /var/lib/neuraldrive/webui \
+         /var/lib/neuraldrive/caddy/config \
          /var/log/neuraldrive \
          /usr/lib/neuraldrive \
          /run/neuraldrive
@@ -29,6 +30,8 @@ chown -R neuraldrive-ollama:neuraldrive-ollama \
     /var/lib/neuraldrive/ollama
 chown -R neuraldrive-webui:neuraldrive-webui \
     /var/lib/neuraldrive/webui
+chown -R neuraldrive-caddy:neuraldrive-caddy \
+    /var/lib/neuraldrive/caddy
 
 systemctl enable neuraldrive-setup.service
 systemctl enable neuraldrive-gpu-detect.service

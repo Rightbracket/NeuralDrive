@@ -7,7 +7,7 @@
     tls /etc/neuraldrive/tls/server.crt /etc/neuraldrive/tls/server.key
 
     handle /* {
-        reverse_proxy localhost:3000
+        reverse_proxy localhost:8080
     }
 }
 

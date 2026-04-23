@@ -36,10 +36,9 @@ class NeuralDriveTUI(App):
     }
 
     def on_mount(self) -> None:
+        self.push_screen(DashboardScreen())
         if not os.path.exists("/etc/neuraldrive/first-boot-complete"):
             self.push_screen(FirstBootWizard())
-        else:
-            self.push_screen(DashboardScreen())
 
     def action_switch_screen(self, screen_name: str) -> None:
         if screen_name in self.SCREENS:
@@ -48,4 +47,4 @@ class NeuralDriveTUI(App):
 
 if __name__ == "__main__":
     app = NeuralDriveTUI()
-    app.run()
+    app.run(mouse=False)
