@@ -196,6 +196,11 @@ Button.model-delete:hover {
     background: #1F0A0A;
 }
 
+Button.model-btn-active {
+    border: tall #F59E0B;
+    text-style: bold reverse;
+}
+
 .svc-row {
     height: 3;
     padding: 0 2;
@@ -460,8 +465,21 @@ Button.catalog-installed {
     margin: 0 2;
 }
 
-#models-scroll {
+#model-list {
     height: 1fr;
     scrollbar-background: #141414;
     scrollbar-color: #2E2E2E;
+}
+
+#pull-input-row {
+    height: auto;
+    layout: horizontal;
+}
+
+#pull-input-row Input {
+    width: 1fr;
+}
+
+#pull-input-row Button {
+    width: 12;
 }

@@ -6,6 +6,8 @@ from textual.widgets import Button, Static
 
 
 class ModelItem(Horizontal):
+    can_focus = False
+
     def __init__(
         self,
         name: str,
@@ -36,6 +38,9 @@ class ModelItem(Horizontal):
         load_btn = Button("Load", name=self._model_name, classes="model-load")
         unload_btn = Button("Unload", name=self._model_name, classes="model-unload")
         delete_btn = Button("Delete", name=self._model_name, classes="model-delete")
+        load_btn.can_focus = False
+        unload_btn.can_focus = False
+        delete_btn.can_focus = False
         if self._loaded:
             load_btn.disabled = True
         else:
@@ -43,3 +48,7 @@ class ModelItem(Horizontal):
         yield load_btn
         yield unload_btn
         yield delete_btn
+
+    def get_action_buttons(self) -> list[Button]:
+        """Return the action buttons in left-to-right order."""
+        return list(self.query("Button"))

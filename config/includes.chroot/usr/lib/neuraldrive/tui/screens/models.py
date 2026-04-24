@@ -5,7 +5,7 @@ import json
 
 from textual import work
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.containers import Horizontal, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Input, ProgressBar, Static
 
@@ -239,30 +239,35 @@ class ModelsScreen(Screen):
         ("r", "refresh", "Refresh"),
         Binding("up", "nav_up", show=False, priority=True),
         Binding("down", "nav_down", show=False, priority=True),
+        Binding("left", "nav_left", show=False, priority=True),
+        Binding("right", "nav_right", show=False, priority=True),
         Binding("pageup", "page_up", show=False, priority=True),
         Binding("pagedown", "page_down", show=False, priority=True),
+        Binding("enter", "activate", show=False, priority=True),
+        Binding("tab", "next_zone", show=False, priority=True),
+        Binding("shift+tab", "prev_zone", show=False, priority=True),
     ]
+
+    ZONES = ["models", "browse", "pull-input", "pull-btn"]
 
     def compose(self) -> ComposeResult:
         yield SafeHeader()
-        with VerticalScroll(id="models-scroll"):
-            yield Static("Installed Models", classes="heading")
-            yield Vertical(id="model-list")
-            yield Static("", classes="heading")
-            yield Button(
-                "Browse Available Models",
-                id="open-catalog",
-                variant="primary",
-                classes="primary",
-            )
-            yield Static("", classes="heading")
-            yield Static("Pull by Name", classes="heading")
+        yield Static("Installed Models", classes="heading")
+        yield VerticalScroll(id="model-list")
+        yield Button(
+            "Browse Available Models",
+            id="open-catalog",
+            variant="primary",
+            classes="primary",
+        )
+        yield Static("Pull by Name", classes="heading")
+        with Horizontal(id="pull-input-row"):
             yield Input(placeholder="e.g. llama3:8b", id="pull-input")
             yield Button("Pull", id="pull-btn")
-            yield Static("", id="model-status")
-            with Horizontal(id="pull-row"):
-                yield ProgressBar(total=100, show_eta=True, id="pull-progress")
-                yield Button("Cancel", id="cancel-pull", variant="error")
+        yield Static("", id="model-status")
+        with Horizontal(id="pull-row"):
+            yield ProgressBar(total=100, show_eta=True, id="pull-progress")
+            yield Button("Cancel", id="cancel-pull", variant="error")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -272,42 +277,143 @@ class ModelsScreen(Screen):
         self._pulling = False
         self._model_items: list[ModelItem] = []
         self._highlight_index = 0
+        self._btn_index = 0
+        self._zone = "models"
         self.action_refresh()
 
+    # ── Zone management ──────────────────────────────────────
+
+    def _enter_zone(self, zone: str) -> None:
+        self._zone = zone
+        if zone == "models":
+            self.set_focus(None)
+            self._apply_highlight()
+        elif zone == "browse":
+            self._clear_highlight()
+            self.query_one("#open-catalog", Button).focus()
+        elif zone == "pull-input":
+            self._clear_highlight()
+            self.query_one("#pull-input", Input).focus()
+        elif zone == "pull-btn":
+            self._clear_highlight()
+            self.query_one("#pull-btn", Button).focus()
+
+    def action_next_zone(self) -> None:
+        idx = self.ZONES.index(self._zone) if self._zone in self.ZONES else 0
+        idx = (idx + 1) % len(self.ZONES)
+        self._enter_zone(self.ZONES[idx])
+
+    def action_prev_zone(self) -> None:
+        idx = self.ZONES.index(self._zone) if self._zone in self.ZONES else 0
+        idx = (idx - 1) % len(self.ZONES)
+        self._enter_zone(self.ZONES[idx])
+
+    # ── Model list highlight ─────────────────────────────────
+
     def _apply_highlight(self) -> None:
+        self._clear_btn_highlight()
         for i, item in enumerate(self._model_items):
             if i == self._highlight_index:
                 item.add_class("model-highlighted")
                 item.scroll_visible()
+                self._apply_btn_highlight()
             else:
                 item.remove_class("model-highlighted")
 
+    def _clear_highlight(self) -> None:
+        self._clear_btn_highlight()
+        for item in self._model_items:
+            item.remove_class("model-highlighted")
+
+    # ── Per-model button highlight ───────────────────────────
+
+    def _get_active_buttons(self) -> list[Button]:
+        if not self._model_items:
+            return []
+        item = self._model_items[self._highlight_index]
+        return item.get_action_buttons()
+
+    def _apply_btn_highlight(self) -> None:
+        buttons = self._get_active_buttons()
+        if not buttons:
+            return
+        self._btn_index = max(0, min(self._btn_index, len(buttons) - 1))
+        for i, btn in enumerate(buttons):
+            if i == self._btn_index:
+                btn.add_class("model-btn-active")
+            else:
+                btn.remove_class("model-btn-active")
+
+    def _clear_btn_highlight(self) -> None:
+        for item in self._model_items:
+            for btn in item.get_action_buttons():
+                btn.remove_class("model-btn-active")
+
+    # ── Navigation actions ───────────────────────────────────
+
     def action_nav_up(self) -> None:
+        if self._zone != "models":
+            return
         if self._model_items and self._highlight_index > 0:
             self._highlight_index -= 1
             self._apply_highlight()
 
     def action_nav_down(self) -> None:
+        if self._zone != "models":
+            return
         if self._model_items and self._highlight_index < len(self._model_items) - 1:
             self._highlight_index += 1
             self._apply_highlight()
 
-    def action_page_up(self) -> None:
-        if not self._model_items:
+    def action_nav_left(self) -> None:
+        if self._zone != "models":
             return
-        scroll = self.query_one("#models-scroll", VerticalScroll)
+        if self._btn_index > 0:
+            self._btn_index -= 1
+            self._apply_btn_highlight()
+
+    def action_nav_right(self) -> None:
+        if self._zone != "models":
+            return
+        buttons = self._get_active_buttons()
+        if self._btn_index < len(buttons) - 1:
+            self._btn_index += 1
+            self._apply_btn_highlight()
+
+    def action_page_up(self) -> None:
+        if self._zone != "models" or not self._model_items:
+            return
+        scroll = self.query_one("#model-list", VerticalScroll)
         page_size = max(1, scroll.size.height // 6)
         self._highlight_index = max(0, self._highlight_index - page_size)
         self._apply_highlight()
 
     def action_page_down(self) -> None:
-        if not self._model_items:
+        if self._zone != "models" or not self._model_items:
             return
-        scroll = self.query_one("#models-scroll", VerticalScroll)
+        scroll = self.query_one("#model-list", VerticalScroll)
         page_size = max(1, scroll.size.height // 6)
         last = len(self._model_items) - 1
         self._highlight_index = min(last, self._highlight_index + page_size)
         self._apply_highlight()
+
+    def action_activate(self) -> None:
+        if self._zone == "models":
+            buttons = self._get_active_buttons()
+            if buttons and 0 <= self._btn_index < len(buttons):
+                btn = buttons[self._btn_index]
+                if not btn.disabled:
+                    btn.press()
+        elif self._zone == "browse":
+            self.query_one("#open-catalog", Button).press()
+        elif self._zone == "pull-input":
+            inp = self.query_one("#pull-input", Input)
+            name = inp.value.strip()
+            if name and not self._pulling:
+                self._pulling = True
+                self._start_pull(name)
+        elif self._zone == "pull-btn":
+            self.query_one("#pull-btn", Button).press()
 
     def action_refresh(self) -> None:
         self.app.call_later(self._load_models)
@@ -329,7 +435,7 @@ class ModelsScreen(Screen):
         if cache_changed:
             config.set_key("vram_cache", vram_cache)
 
-        container = self.query_one("#model-list", Vertical)
+        container = self.query_one("#model-list", VerticalScroll)
         container.remove_children()
         self._model_items = []
 
@@ -362,7 +468,9 @@ class ModelsScreen(Screen):
             self._highlight_index = min(
                 self._highlight_index, len(self._model_items) - 1
             )
-            self._apply_highlight()
+            self._btn_index = 0
+            if self._zone == "models":
+                self._apply_highlight()
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         btn = event.button
