@@ -38,6 +38,7 @@ class ServicesScreen(Screen):
         self._svc_items: list[ServiceItem] = []
         self._highlight_index = 0
         self._btn_index = 0
+        self._loading = False
         self._poll_timer = self.set_interval(POLL_INTERVAL, self._poll_services)
         self.app.call_later(self._load_services)
 
@@ -48,6 +49,7 @@ class ServicesScreen(Screen):
         pass
 
     async def _load_services(self) -> None:
+        self._loading = True
         container = self.query_one("#svc-list", VerticalScroll)
         await container.remove_children()
         self._svc_items = []
@@ -63,13 +65,15 @@ class ServicesScreen(Screen):
             )
             self._btn_index = 0
             self._apply_highlight()
+        self._loading = False
 
     async def _poll_services(self) -> None:
+        if self._loading or not self._svc_items:
+            return
         for item in self._svc_items:
             status = hardware.get_service_status(item.name)
             item.update_status(status)
-        if self._svc_items:
-            self._apply_btn_highlight()
+        self._apply_btn_highlight()
 
     def _get_active_buttons(self) -> list[Button]:
         if not self._svc_items:
