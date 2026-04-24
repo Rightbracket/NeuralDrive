@@ -166,11 +166,14 @@ def get_boot_device() -> str | None:
         )
         if res.returncode == 0 and res.stdout.strip():
             part_dev = res.stdout.strip()
-            import re
-
-            match = re.match(r"(/dev/[a-z]+)", part_dev)
-            if match:
-                return match.group(1)
+            pkname_res = subprocess.run(
+                ["lsblk", "-no", "PKNAME", part_dev],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if pkname_res.returncode == 0 and pkname_res.stdout.strip():
+                return f"/dev/{pkname_res.stdout.strip()}"
     except (OSError, subprocess.TimeoutExpired, FileNotFoundError):
         pass
     return None

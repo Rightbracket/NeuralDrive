@@ -310,13 +310,13 @@ class FirstBootWizard(Screen):
                 text=True,
                 timeout=5,
             )
-            before_parts = set()
-            if pre_res.returncode == 0:
-                before_parts = {
-                    line.strip()
-                    for line in pre_res.stdout.strip().splitlines()
-                    if line.strip()
-                }
+            if pre_res.returncode != 0:
+                return "Cannot list partitions — aborting to avoid unsafe disk changes"
+            before_parts = {
+                line.strip()
+                for line in pre_res.stdout.strip().splitlines()
+                if line.strip()
+            }
 
             proc = subprocess.run(
                 [
@@ -338,44 +338,45 @@ class FirstBootWizard(Screen):
             if proc.returncode != 0:
                 return proc.stderr.strip()
 
-            subprocess.run(
+            partprobe_proc = subprocess.run(
                 ["sudo", "partprobe", self._boot_device],
                 capture_output=True,
+                text=True,
                 timeout=10,
             )
+            if partprobe_proc.returncode != 0:
+                return f"partprobe failed: {partprobe_proc.stderr.strip()}"
 
             import time
 
-            time.sleep(2)
-
-            # Snapshot partition list AFTER partprobe
-            post_res = subprocess.run(
-                ["lsblk", "-ln", "-o", "NAME", self._boot_device],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if post_res.returncode != 0:
-                return "Could not determine new partition device"
-
-            after_parts = {
-                line.strip()
-                for line in post_res.stdout.strip().splitlines()
-                if line.strip()
-            }
-
-            new_parts = after_parts - before_parts
-            # Filter out the base device name itself
-            base_name = os.path.basename(self._boot_device)
-            new_parts.discard(base_name)
-
-            if len(new_parts) != 1:
-                return (
-                    f"Expected exactly 1 new partition, found {len(new_parts)}: "
-                    f"{new_parts or 'none'}"
+            new_part = None
+            for _attempt in range(6):
+                time.sleep(1)
+                post_res = subprocess.run(
+                    ["lsblk", "-ln", "-o", "NAME", self._boot_device],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
+                if post_res.returncode != 0:
+                    continue
 
-            new_part = f"/dev/{new_parts.pop()}"
+                after_parts = {
+                    line.strip()
+                    for line in post_res.stdout.strip().splitlines()
+                    if line.strip()
+                }
+
+                new_parts = after_parts - before_parts
+                base_name = os.path.basename(self._boot_device)
+                new_parts.discard(base_name)
+
+                if len(new_parts) == 1:
+                    new_part = f"/dev/{new_parts.pop()}"
+                    break
+
+            if not new_part:
+                return "New partition did not appear after partprobe (timed out)"
 
             proc = subprocess.run(
                 [

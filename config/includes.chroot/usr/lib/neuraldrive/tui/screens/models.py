@@ -332,7 +332,7 @@ class ModelsScreen(Screen):
             self._delete_model(btn.name or "")
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        if event.input.id == "pull-input":
+        if event.input.id == "pull-input" and not self._pulling:
             name = event.input.value.strip()
             if name:
                 self._start_pull(name)
