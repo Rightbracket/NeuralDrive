@@ -20,7 +20,7 @@ Follow these steps to generate a custom NeuralDrive ISO.
 Clone the NeuralDrive repository and navigate to the builder directory.
 
 ```bash
-git clone https://github.com/NeuralDrive/NeuralDrive.git
+git clone https://github.com/Rightbracket/NeuralDrive.git
 cd NeuralDrive/builder
 ```
 

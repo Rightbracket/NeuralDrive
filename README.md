@@ -161,7 +161,7 @@ NeuralDrive images are built using Debian's `live-build` toolchain inside a Dock
 
 ```bash
 # Clone and build
-git clone https://github.com/NeuralDrive/NeuralDrive.git
+git clone https://github.com/Rightbracket/NeuralDrive.git
 cd NeuralDrive
 docker compose run --rm builder
 
