@@ -447,7 +447,7 @@ class ModelsScreen(Screen):
             config.set_key("vram_cache", vram_cache)
 
         container = self.query_one("#model-list", VerticalScroll)
-        container.remove_children()
+        await container.remove_children()
         self._model_items = []
 
         if not all_models:
@@ -600,7 +600,7 @@ class ModelsScreen(Screen):
         if load_btn:
             load_btn.label = "Loading\u2026"
             load_btn.disabled = True
-        success = await api_client.load_model(model_name)
+        success = await api_client.load_model(model_name, keep_alive="-1")
         if success:
             status.update(f"  \u2713 {model_name} loaded into VRAM")
         else:
@@ -613,6 +613,14 @@ class ModelsScreen(Screen):
         status.update(f"Unloading {model_name}...")
         success = await api_client.unload_model(model_name)
         if success:
+            # Ollama returns 200 before the model is fully evicted from /api/ps.
+            # Poll until it disappears so the UI refresh sees the real state.
+            for _ in range(10):
+                await asyncio.sleep(0.5)
+                running = await api_client.list_running_models()
+                running_names = {m.get("name", "") for m in running}
+                if model_name not in running_names:
+                    break
             status.update(f"  \u2713 {model_name} unloaded from VRAM")
         else:
             status.update(f"  \u2717 Failed to unload {model_name}")
