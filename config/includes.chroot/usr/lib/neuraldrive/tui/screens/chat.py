@@ -20,10 +20,11 @@ class ChatScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Static("  Model", classes="heading")
-        yield Select([], id="chat-model-select", prompt="Choose a model…")
+        with Horizontal(id="chat-model-row"):
+            yield Static(" Model ", id="chat-model-label")
+            yield Select([], id="chat-model-select", prompt="Choose a model…")
         yield Static("", id="chat-notice")
-        yield RichLog(highlight=True, markup=False, id="chat-log")
+        yield RichLog(highlight=True, markup=False, wrap=True, id="chat-log")
         with Horizontal(id="chat-input-row"):
             yield Input(placeholder="Type a message…", id="chat-input")
             yield Button("Send", id="chat-send", classes="primary")

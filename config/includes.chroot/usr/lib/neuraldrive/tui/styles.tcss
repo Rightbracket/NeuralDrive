@@ -266,12 +266,26 @@ Select {
     color: #FFFFFF;
 }
 
-#chat-model-select {
-    width: 100%;
-    margin: 0 2;
-    border: solid #F59E0B;
-    background: #141414;
+#chat-model-row {
+    layout: horizontal;
+    height: auto;
+    padding: 0 1;
+}
+
+#chat-model-label {
+    color: #F59E0B;
+    text-style: bold;
+    width: auto;
     height: 3;
+    content-align: left middle;
+    padding: 0 1;
+}
+
+#chat-model-select {
+    width: 1fr;
+    background: #1F1F1F;
+    color: #FFFFFF;
+    height: auto;
 }
 
 #wizard-container {
@@ -291,7 +305,7 @@ Select {
 #chat-input-row {
     layout: horizontal;
     height: 3;
-    dock: bottom;
+    margin: 0 0 0 0;
 }
 
 #chat-input {
@@ -300,6 +314,7 @@ Select {
 
 #chat-send {
     width: 10;
+    content-align: center middle;
 }
 
 #chat-log {
