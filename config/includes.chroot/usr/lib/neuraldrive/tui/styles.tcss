@@ -201,44 +201,116 @@ Button.model-btn-active {
     text-style: bold reverse;
 }
 
-.svc-row {
-    height: 3;
+.svc-item {
+    layout: horizontal;
+    height: 5;
     padding: 0 2;
     border: solid #2E2E2E;
-    margin: 0 0 0 0;
+    margin: 0 0 1 0;
     background: #141414;
+}
+
+.svc-item:hover {
+    background: #1F1F1F;
+}
+
+.svc-highlighted {
+    background: #1F1F1F;
+    border: solid #F59E0B;
+}
+
+.svc-item Static {
+    height: 100%;
     content-align: left middle;
 }
 
-.svc-active {
+.svc-item Static.svc-name {
+    color: #FFFFFF;
+    text-style: bold;
+    width: 1fr;
+}
+
+.svc-item Static.svc-state {
+    width: 16;
+}
+
+.svc-status-active {
     color: #10B981;
 }
 
-.svc-inactive {
+.svc-status-inactive {
     color: #EF4444;
 }
 
-.svc-selected {
+Button.svc-start {
     background: #1F1F1F;
+    color: #10B981;
+    border: solid #10B981;
+    min-width: 10;
+    width: 10;
+    height: 3;
+}
+
+Button.svc-start:hover {
+    background: #0A1F0A;
+}
+
+Button.svc-start:disabled {
+    background: #0A0A0A;
+    color: #52525B;
+    border: solid #1A1A1A;
+}
+
+Button.svc-stop {
+    background: #1F1F1F;
+    color: #EF4444;
+    border: solid #EF4444;
+    min-width: 10;
+    width: 10;
+    height: 3;
+}
+
+Button.svc-stop:hover {
+    background: #1F0A0A;
+}
+
+Button.svc-stop:disabled {
+    background: #0A0A0A;
+    color: #52525B;
+    border: solid #1A1A1A;
+}
+
+Button.svc-restart {
+    background: #1F1F1F;
+    color: #F59E0B;
     border: solid #F59E0B;
+    min-width: 10;
+    width: 10;
+    height: 3;
+}
+
+Button.svc-restart:hover {
+    background: #1F1A0A;
+}
+
+Button.svc-restart:disabled {
+    background: #0A0A0A;
+    color: #52525B;
+    border: solid #1A1A1A;
+}
+
+Button.svc-btn-active {
+    border: tall #F59E0B;
+    text-style: bold reverse;
+}
+
+#svc-list {
+    height: 1fr;
 }
 
 #svc-status {
     height: 1;
     padding: 0 2;
-    dock: bottom;
-    offset: 0 -4;
-}
-
-#svc-actions {
-    height: auto;
-    padding: 0 1;
-    dock: bottom;
-    align: center middle;
-}
-
-#svc-actions Button {
-    margin: 0 1;
 }
 
 Button {
