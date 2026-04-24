@@ -48,7 +48,9 @@ async def pull_model(name: str):
 async def delete_model(name: str) -> bool:
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-            resp = await client.delete(f"{OLLAMA_URL}/api/delete", json={"name": name})
+            resp = await client.request(
+                "DELETE", f"{OLLAMA_URL}/api/delete", json={"name": name}
+            )
             return resp.status_code == 200
     except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError):
         return False

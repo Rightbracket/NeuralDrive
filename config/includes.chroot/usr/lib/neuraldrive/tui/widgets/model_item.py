@@ -35,9 +35,11 @@ class ModelItem(Horizontal):
             yield Static("○ ready", classes="model-status-cached")
         load_btn = Button("Load", name=self._model_name, classes="model-load")
         unload_btn = Button("Unload", name=self._model_name, classes="model-unload")
+        delete_btn = Button("Delete", name=self._model_name, classes="model-delete")
         if self._loaded:
             load_btn.disabled = True
         else:
             unload_btn.disabled = True
         yield load_btn
         yield unload_btn
+        yield delete_btn

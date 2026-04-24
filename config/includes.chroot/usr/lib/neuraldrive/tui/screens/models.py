@@ -328,6 +328,8 @@ class ModelsScreen(Screen):
             self._load_to_vram(btn.name or "")
         elif btn.has_class("model-unload"):
             self._unload_from_vram(btn.name or "")
+        elif btn.has_class("model-delete"):
+            self._delete_model(btn.name or "")
 
     def _cancel_pull(self) -> None:
         self._pull_queue.clear()
@@ -430,4 +432,20 @@ class ModelsScreen(Screen):
             status.update(f"  \u2713 {model_name} unloaded from VRAM")
         else:
             status.update(f"  \u2717 Failed to unload {model_name}")
+        await self._load_models()
+
+    @work()
+    async def _delete_model(self, model_name: str) -> None:
+        status = self.query_one("#model-status", Static)
+        running = await api_client.list_running_models()
+        running_names = {m.get("name", "") for m in running}
+        if model_name in running_names:
+            status.update(f"Unloading {model_name} from VRAM before delete...")
+            await api_client.unload_model(model_name)
+        status.update(f"Deleting {model_name}...")
+        success = await api_client.delete_model(model_name)
+        if success:
+            status.update(f"  \u2713 {model_name} deleted")
+        else:
+            status.update(f"  \u2717 Failed to delete {model_name}")
         await self._load_models()

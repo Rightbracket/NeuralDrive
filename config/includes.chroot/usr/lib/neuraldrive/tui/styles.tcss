@@ -178,6 +178,19 @@ Button.model-unload:disabled {
     border: solid #1A1A1A;
 }
 
+Button.model-delete {
+    background: #1F1F1F;
+    color: #EF4444;
+    border: solid #EF4444;
+    min-width: 10;
+    width: 10;
+    height: 3;
+}
+
+Button.model-delete:hover {
+    background: #1F0A0A;
+}
+
 .svc-row {
     height: 3;
     padding: 0 2;
