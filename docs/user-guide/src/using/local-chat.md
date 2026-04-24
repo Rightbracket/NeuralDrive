@@ -6,20 +6,20 @@ For quick testing and offline interaction, NeuralDrive includes a lightweight, t
 
 ## Launching the Chat
 
-Access the local chat by pressing **C** from the main TUI dashboard.
+Access the local chat by pressing **F5** from any screen.
 
 ## Using the Chat Interface
 
-1. **Model Selection:** Upon entering the chat screen, you will be prompted to select one of the models currently available on your system. Use the arrow keys to highlight a model and press Enter.
+1. **Model Selection:** A model selector dropdown at the top of the screen lets you choose which installed model to chat with. The selected model persists even when switching away and returning to the chat screen.
 2. **Messaging:** Type your message into the input field at the bottom of the screen. Press Enter to send.
 3. **Streaming Responses:** The model's response will stream directly into the terminal window in real-time.
 4. **Keyboard Shortcuts:**
-   - **Esc or B:** Return to the model selection or main dashboard.
+   - **F1-F4:** Switch to another TUI screen (Dashboard, Models, Services, or Logs).
    - **Ctrl+C:** Interrupt the current response generation.
 
 ## Features and Limitations
 
-The TUI chat is designed for simplicity and speed.
+The TUI chat is designed for simplicity and speed. You must have at least one model downloaded and loaded to use the chat interface.
 
 - **Fast & Lightweight:** Minimal resource overhead compared to the full web UI.
 - **Persistent Context:** The chat maintains a basic conversation history within the current session, allowing for follow-up questions.

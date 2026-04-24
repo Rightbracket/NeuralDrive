@@ -6,7 +6,10 @@ Requires=neuraldrive-gpu-detect.service
 [Service]
 Environment=HOME=/var/lib/neuraldrive/ollama
 EnvironmentFile=/etc/neuraldrive/ollama.conf
+EnvironmentFile=-/var/lib/neuraldrive/config/ollama.conf
 ExecStartPre=/usr/bin/mkdir -p /var/lib/neuraldrive/models
+ExecStartPre=-/sbin/modprobe nvidia-current-uvm
+ExecStartPre=-/usr/bin/nvidia-modprobe -u
 ExecStart=/usr/local/bin/ollama serve
 User=neuraldrive-ollama
 Group=neuraldrive-ollama
@@ -26,8 +29,6 @@ PrivateTmp=yes
 PrivateDevices=no
 ProtectKernelTunables=yes
 ProtectControlGroups=yes
-DeviceAllow=/dev/nvidia* rw
-DeviceAllow=/dev/dri/* rw
 ReadWritePaths=/var/lib/neuraldrive /var/log/neuraldrive /etc/neuraldrive /run/neuraldrive
 
 [Install]

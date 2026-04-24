@@ -2,36 +2,33 @@
 
 # Service Control
 
-The Services screen provides a centralized interface for managing the background system processes that power NeuralDrive. Access this screen by pressing **S** from the main dashboard.
+The Services screen provides a centralized interface for managing the background system processes that power NeuralDrive.
 
-## Service List
+## Access
+Press **F3** from any screen to access Service Control.
 
-This screen displays all `neuraldrive-*` services and their current operational status:
+## Layout
+The screen displays a scrollable list of services. Each service is represented by a `ServiceItem` widget showing the service name, its current status, and a set of action buttons.
 
-- **Active:** The service is running normally.
-- **Inactive:** The service is stopped.
-- **Failed:** The service encountered an error and crashed.
+### Services Managed
+The TUI allows you to manage critical NeuralDrive components, including:
+- `neuraldrive-ollama`: The core model execution engine.
+- `neuraldrive-webui`: The browser-based user interface.
+- Any other configured system services specific to the NeuralDrive distribution.
 
-The primary services you will see include:
+## Navigation
+- **Up / Down arrows**: Navigate between the different services in the list.
+- **Left / Right arrows**: Navigate between the action buttons (Start/Stop/Restart) for the currently selected service. The focus will automatically skip buttons that are disabled based on the service's current state.
+- **Enter**: Activate the focused action button.
 
-- `neuraldrive-ollama`: The model execution engine.
-- `neuraldrive-webui`: The browser-based interface.
-- `neuraldrive-caddy`: The reverse proxy handling TLS and routing.
-- `neuraldrive-system-api`: The system management API.
+## Action Buttons
+Each service has three colored action buttons that enable or disable dynamically:
 
-## Managing Services
+- **Start** (green): Starts a service that is currently stopped or inactive.
+- **Stop** (red): Gracefully shuts down a running service.
+- **Restart** (amber): Stops and immediately restarts a running service. This is often the quickest way to resolve minor connectivity or performance issues.
 
-You can control individual services using the following keybindings after selecting a service from the list:
+## Auto-Refresh and Monitoring
+The status of all services is automatically polled every 5 seconds to ensure the interface reflects the actual state of the system. 
 
-- **R (Restart):** Stops and immediately restarts the selected service. This is the first step you should take if a component becomes unresponsive.
-- **S (Start):** Manages starting a service that is currently inactive or failed.
-- **T (Stop):** Gracefully shuts down the selected service.
-
-## Recovery and Troubleshooting
-
-If the Dashboard shows an "Ollama Offline" badge, navigate to the Services screen and check the status of `neuraldrive-ollama`. If it is in a **Failed** or **Inactive** state, use the **S** key to start it or **R** to restart it.
-
-Monitoring service status is critical for maintaining system uptime. If a service repeatedly fails, you should examine the system logs for more detailed error information.
-
-Press **B** or **Back** to return to the main dashboard.
-
+If a service like `neuraldrive-ollama` shows a failed or inactive status, use the action buttons to restore it. Continuous monitoring and manual control through this screen help maintain the overall health of your NeuralDrive instance.

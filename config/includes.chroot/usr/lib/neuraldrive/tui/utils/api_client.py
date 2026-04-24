@@ -48,7 +48,33 @@ async def pull_model(name: str):
 async def delete_model(name: str) -> bool:
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-            resp = await client.delete(f"{OLLAMA_URL}/api/delete", json={"name": name})
+            resp = await client.request(
+                "DELETE", f"{OLLAMA_URL}/api/delete", json={"name": name}
+            )
+            return resp.status_code == 200
+    except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError):
+        return False
+
+
+async def load_model(name: str, keep_alive: str | int = "5m") -> bool:
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, read=300.0)) as client:
+            resp = await client.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": name, "prompt": "", "keep_alive": keep_alive},
+            )
+            return resp.status_code == 200
+    except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError):
+        return False
+
+
+async def unload_model(name: str) -> bool:
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            resp = await client.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": name, "prompt": "", "keep_alive": 0},
+            )
             return resp.status_code == 200
     except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError):
         return False

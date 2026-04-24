@@ -37,7 +37,13 @@ If the model is generating text very slowly (less than 1 token per second):
     ```bash
     cat /run/neuraldrive/gpu.conf
     ```
-2.  **Mixed Models**: Ensure you are not running multiple models simultaneously, which may compete for limited hardware resources.
+### Concurrent Model Loading
+
+Multiple models can be loaded simultaneously if your hardware supports it.
+
+1.  **Automatic Management**: NeuralDrive uses `OLLAMA_MAX_LOADED_MODELS=0` (auto) by default. Ollama manages concurrent loading based on your available VRAM.
+2.  **Model Eviction**: When VRAM is exhausted, least-recently-used models are automatically evicted from memory to make room for new ones.
+3.  **Manual Control**: You can manually load or unload models via the TUI Models screen (accessible with the **F2** key).
 
 ## Management and Corruption
 

@@ -12,7 +12,7 @@ The primary backend service, Ollama, is controlled via `/etc/neuraldrive/ollama.
 OLLAMA_HOST=127.0.0.1:11434
 OLLAMA_MODELS=/var/lib/neuraldrive/models/
 OLLAMA_KEEP_ALIVE=5m
-OLLAMA_MAX_LOADED_MODELS=1
+OLLAMA_MAX_LOADED_MODELS=0
 OLLAMA_NUM_PARALLEL=1
 ```
 
@@ -20,7 +20,7 @@ OLLAMA_NUM_PARALLEL=1
 
 *   **OLLAMA_NUM_PARALLEL**: (Integer) The number of concurrent requests the server will handle. Increase this for multi-user environments, though this will increase VRAM usage.
 *   **OLLAMA_KEEP_ALIVE**: (Duration) How long a model remains loaded in memory after the last request. Setting this to a higher value (e.g., `30m`) avoids the latency of reloading models.
-*   **OLLAMA_MAX_LOADED_MODELS**: (Integer) The maximum number of models to keep in VRAM simultaneously.
+*   **OLLAMA_MAX_LOADED_MODELS**: (Integer) The maximum number of models to keep in VRAM simultaneously. The default is `0` (auto), which allows Ollama to manage concurrent loading based on available VRAM. When memory is full, Least Recently Used (LRU) models are evicted automatically. Manual overrides can be set in `/var/lib/neuraldrive/config/ollama.conf`.
 *   **OLLAMA_NUM_THREADS**: (Integer) Specifies the number of CPU threads to use for inference. By default, this auto-detects based on your hardware.
 *   **OLLAMA_FLASH_ATTENTION**: (Boolean) Enabling Flash Attention can significantly improve speed on supported GPUs (e.g., NVIDIA Ampere and newer).
 

@@ -11,3 +11,4 @@ nvidia-persistenced
 firmware-nvidia-gsp
 libcuda1
 libnvidia-ml1
+nvidia-modprobe

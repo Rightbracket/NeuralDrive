@@ -118,11 +118,11 @@ git clone --depth 1 https://github.com/psalias2006/gpu-hot.git /usr/lib/neuraldr
 # --- TUI (terminal interface) ---
 python3 -m venv /usr/lib/neuraldrive/tui/venv
 /usr/lib/neuraldrive/tui/venv/bin/pip install --no-cache-dir --upgrade pip
-/usr/lib/neuraldrive/tui/venv/bin/pip install --no-cache-dir textual psutil httpx rich
+/usr/lib/neuraldrive/tui/venv/bin/pip install --no-cache-dir textual psutil httpx rich pyyaml
 
 cat > /usr/local/bin/neuraldrive-tui << 'LAUNCHER'
 #!/bin/sh
-exec /usr/lib/neuraldrive/tui/venv/bin/python /usr/lib/neuraldrive/tui/main.py
+exec /usr/lib/neuraldrive/tui/venv/bin/python /usr/lib/neuraldrive/tui/main.py "$@"
 LAUNCHER
 chmod +x /usr/local/bin/neuraldrive-tui
 

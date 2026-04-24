@@ -25,13 +25,13 @@ If your system lacks a compatible GPU, NeuralDrive can run models on the CPU. Wh
 
 ## Concurrent Models
 
-NeuralDrive allows multiple models to be loaded into memory simultaneously, provided there is enough VRAM. This is managed via several environment variables in the Ollama service:
+NeuralDrive allows multiple models to be loaded into memory simultaneously, provided there is enough VRAM. This is managed by Ollama using several environment variables:
 
-- `OLLAMA_MAX_LOADED_MODELS`: Defines the maximum number of models kept in memory.
-- `OLLAMA_NUM_PARALLEL`: Determines how many concurrent requests can be handled by a single model.
+- `OLLAMA_MAX_LOADED_MODELS`: Defines the maximum number of models kept in memory. The default is `0` (auto), which allows Ollama to manage loading based on available VRAM.
+- `OLLAMA_NUM_PARALLEL`: Determines how many concurrent requests can be handled.
 - `OLLAMA_KEEP_ALIVE`: Sets how long a model stays in memory after the last request before being evicted.
 
-NeuralDrive uses a Least Recently Used (LRU) eviction policy. If you attempt to load a new model and VRAM is full, the model that hasn't been used for the longest time will be unloaded to make room.
+NeuralDrive uses a Least Recently Used (LRU) eviction policy. If you attempt to load a new model and VRAM is full, Ollama handles eviction automatically to make room for the new request.
 
 ## Model Catalog
 

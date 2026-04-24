@@ -28,15 +28,18 @@ Once the boot process is complete, the console will display your system's IP add
 
 ## First-Boot Wizard
 
-If the system has not been initialized, a Text User Interface (TUI) wizard will start automatically. You must complete these seven steps to prepare your server:
+If the system has not been initialized, a Text User Interface (TUI) wizard will start automatically. The wizard runs as part of the TUI application, checking for a sentinel file on startup. You must complete these six steps to prepare your server:
 
-1. **Welcome:** Displays a hardware summary and runs a brief system health check to ensure your GPU is detected correctly.
-2. **Security:** Generates a random administrator password and API key. You can choose to keep these or set a custom password.
-3. **Wi-Fi:** If no Ethernet connection is detected, the wizard provides an SSID selector to configure your wireless network.
-4. **Network:** Choose between DHCP (default) or a static IP address.
-5. **Storage:** Select the drive for your persistent data. You can also enable LUKS encryption here. **Warning: This step is destructive to data on the selected drive.**
-6. **Models:** Recommends specific LLM starter models based on your hardware's VRAM and capabilities.
-7. **Finish:** The system writes your configurations, provisions the web administrator account, and removes insecure default permissions (like NOPASSWD sudo).
+1. **Welcome:** Introductory screen with hardware summary and system health check.
+2. **Storage/Persistence:** Detects your USB boot device and creates an ext4 persistence partition on unused space. This step also creates required directories under `/var/lib/neuraldrive/` (ollama, models, config, webui, logs).
+3. **Security:** Sets the administrator password and configures system credentials.
+4. **Network:** Configure your network connection, including Wi-Fi (if applicable) and IP assignment (DHCP or static).
+5. **Models:** Select initial LLM models to download based on your hardware capabilities.
+6. **Done:** Final completion summary and display of system credentials.
+
+### Re-running the Wizard
+
+If you need to reset your configuration, run `neuraldrive-tui --wizard` from the console. This command removes the sentinel file and forces the wizard to run again on the next TUI launch.
 
 ### Write Down Your Credentials
 
@@ -44,10 +47,9 @@ At the end of the wizard, your final credentials and the dashboard URL will be d
 
 ## System Initialization Files
 
-NeuralDrive uses two sentinel files to track its state:
-- `/etc/neuraldrive/initialized`: Indicates that the core system initialization has occurred.
+NeuralDrive uses a sentinel file to track its state:
 - `/etc/neuraldrive/first-boot-complete`: Confirms the user setup wizard has been finished.
 
-Once these files are present, the system will boot directly to the ready state in the future.
+Once this file is present, the system will boot directly to the ready state.
 
 Next step: [Web Dashboard](../using/web-dashboard.md)

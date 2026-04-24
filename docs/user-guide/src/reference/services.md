@@ -13,7 +13,7 @@ This document provides a detailed overview of the systemd services that power th
 | `neuraldrive-certs` | oneshot | root | — | network-online, local-fs | Generates self-signed TLS certificates (skips if they already exist). |
 | `neuraldrive-zram` | oneshot | root | — | local-fs | Sets up compressed RAM-based swap space. |
 | `neuraldrive-show-ip` | oneshot | root | — | network-online | Displays the current IP address on the physical console. |
-| `neuraldrive-ollama` | long-running | neuraldrive-ollama | 11434 | gpu-detect | The underlying LLM inference and model management engine. |
+| `neuraldrive-ollama` | long-running | neuraldrive-ollama | 11434 | gpu-detect | The GPU-accelerated LLM inference and model management engine. |
 | `neuraldrive-webui` | long-running | neuraldrive-webui | 3000 | ollama | The Open WebUI dashboard and chat interface. |
 | `neuraldrive-caddy` | long-running | neuraldrive-caddy | 443, 8443 | certs | The TLS reverse proxy and API gateway. |
 | `neuraldrive-gpu-monitor` | long-running | neuraldrive-monitor | 1312 | gpu-detect | Monitors GPU temperature, VRAM usage, and health. |
@@ -24,7 +24,8 @@ This document provides a detailed overview of the systemd services that power th
 
 All NeuralDrive services are configured with systemd-native security hardening to minimize the system attack surface:
 
--   **PrivateDevices**: Most services are denied access to `/dev/` nodes, except for the GPU-specific services.
+-   **PrivateDevices**: Most services are denied access to `/dev/` nodes. The Ollama service specifically uses `PrivateDevices=no` to allow access to GPU device nodes required for hardware acceleration.
+-   **DeviceAllow**: This directive was removed from the Ollama service because cgroup v2 eBPF filters can block CUDA access even when devices are explicitly allowed.
 -   **ProtectSystem**: The root filesystem is mounted read-only for service processes.
 -   **ProtectHome**: Services have no access to the `/home/` directory.
 -   **NoNewPrivileges**: Prevents processes from gaining elevated permissions via `setuid` or `setgid`.

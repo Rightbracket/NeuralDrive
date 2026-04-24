@@ -19,15 +19,54 @@ The default screen showing:
 - mDNS address (`neuraldrive.local`).
 - CPU, Memory, and Disk usage gauges.
 - GPU status overview.
-
-### Services
-Provides a list of all NeuralDrive systemd units with their current status (active, inactive, failed). Users can select a service to view its recent logs or trigger a restart.
+Manual refresh is available via the **R** key, alongside a live clock.
 
 ### Models
-Lists all LLM models currently stored in the persistence layer. Shows model size and allows users to delete unused models to free up disk space.
+Lists all LLM models currently stored in the persistence layer. Shows model name and metadata columns (params, quantization, disk size, VRAM usage, and status). Users can Load, Unload, or Delete models. This screen refreshes automatically on user action.
 
-### Networking
-Allows basic network configuration, such as switching between DHCP and static IP, or configuring a Wi-Fi connection.
+### Services
+Provides a list of all NeuralDrive systemd units with their current status (active, inactive, failed). Users can select a service to view its recent logs or trigger a restart. This screen auto-polls every 5 seconds.
+
+### Logs
+System-wide log viewer for NeuralDrive services and kernel messages.
+
+### Chat
+A lightweight chat interface allowing users to test models locally. It includes a model selector dropdown and supports streaming responses via `@work(exclusive=True)`. Model selection persists across screen switches.
+
+## Hotkeys
+
+- **F1**: Dashboard
+- **F2**: Models
+- **F3**: Services
+- **F4**: Logs
+- **F5**: Chat
+- **Q**: Quit
+
+## Navigation Model
+
+The TUI uses a zone-based focus system.
+- **Tab / Shift+Tab**: Cycle focus between different zones within a screen.
+- **Arrow Keys**: Navigate within the currently focused zone.
+- **Enter**: Activate the selected item or button.
+
+## Custom Widgets
+
+Several custom composite widgets are used to build the interface:
+- `SafeHeader`: A subclass of Textual's `Header` that catches `NoMatches` exceptions during `_on_mount`, working around Textual bug #4258.
+- `ServiceItem`: Displays service name, status label, and control buttons (Start, Stop, Restart).
+- `ModelItem`: Displays model name, metadata, and action buttons (Load, Unload, Delete).
+
+## Crash Dump Logging
+
+The TUI overrides `App._handle_exception` to write crash dumps to `/var/lib/neuraldrive/logs/tui-crash-*.log` with a full traceback. The entire `main()` function is also wrapped in a try/except block to catch crashes occurring outside the Textual event loop. Screenshots are saved to `/var/lib/neuraldrive/screenshots/`.
+
+## CLI Flags
+
+- `--wizard`: Removes the sentinel file (`/etc/neuraldrive/first-boot-complete`) and forces the first-boot wizard to re-run on the next launch.
+
+## Command Palette
+
+The Textual command palette is explicitly disabled (`ENABLE_COMMAND_PALETTE = False`).
 
 ## Auto-Login and Startup
 
@@ -43,9 +82,10 @@ The source code for the TUI is located at `/usr/lib/neuraldrive/tui/`.
 
 ## Refresh Intervals
 
+- **Dashboard**: Manual refresh (R key) with live clock.
+- **Services**: Auto-polls every 5 seconds.
+- **Models**: Refreshes on user action.
 - **System Metrics**: Refreshed every 2 seconds.
-- **Service Status**: Refreshed every 5 seconds.
-- **Network Info**: Refreshed only on request or after a configuration change.
 
 ## Modifying the TUI
 
