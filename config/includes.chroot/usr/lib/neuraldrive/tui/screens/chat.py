@@ -34,9 +34,13 @@ class ChatScreen(Screen):
 
     def on_mount(self) -> None:
         self.app.call_later(self._load_model_options)
+        self._refresh_timer = self.set_interval(10, self._poll_model_options)
 
     def on_screen_resume(self) -> None:
         self.app.call_later(self._load_model_options)
+
+    async def _poll_model_options(self) -> None:
+        await self._load_model_options()
 
     async def _load_model_options(self) -> None:
         notice = self.query_one("#chat-notice", Static)
@@ -53,13 +57,19 @@ class ChatScreen(Screen):
             return
 
         models = await api_client.list_models()
-        options = [(m.get("name", "?"), m.get("name", "?")) for m in models]
+        running = await api_client.list_running_models()
+        running_names = {m.get("name", "") for m in running}
+        options = []
+        for m in models:
+            name = m.get("name", "?")
+            label = f"* {name}" if name in running_names else name
+            options.append((label, name))
         previous = select.value
         select.set_options(options)
 
         if not options:
             notice.update(
-                "  No models installed. Pull a model from the Models screen (press M)."
+                "  No models installed. Pull a model from the Models screen (F2)."
             )
             notice.add_class("warn")
             send_btn.disabled = True
@@ -141,3 +151,4 @@ class ChatScreen(Screen):
         finally:
             send_btn.disabled = False
             chat_input.disabled = False
+            chat_input.focus()
