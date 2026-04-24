@@ -34,11 +34,13 @@ def save(data: dict[str, Any]) -> str | None:
     path = _config_path()
     content = yaml.dump(data, default_flow_style=False, sort_keys=False)
     try:
-        subprocess.run(
+        mkdir_proc = subprocess.run(
             ["sudo", "mkdir", "-p", os.path.dirname(path)],
             capture_output=True,
             timeout=5,
         )
+        if mkdir_proc.returncode != 0:
+            return f"Failed to create dir for {path}: {mkdir_proc.stderr.decode().strip()}"
         proc = subprocess.run(
             ["sudo", "tee", path],
             input=content.encode(),
@@ -47,11 +49,13 @@ def save(data: dict[str, Any]) -> str | None:
         )
         if proc.returncode != 0:
             return f"Failed to write {path}: {proc.stderr.decode().strip()}"
-        subprocess.run(
+        chmod_proc = subprocess.run(
             ["sudo", "chmod", "0644", path],
             capture_output=True,
             timeout=5,
         )
+        if chmod_proc.returncode != 0:
+            return f"Failed to chmod {path}: {chmod_proc.stderr.decode().strip()}"
         return None
     except (subprocess.TimeoutExpired, FileNotFoundError) as e:
         return f"Failed to write {path}: {e}"

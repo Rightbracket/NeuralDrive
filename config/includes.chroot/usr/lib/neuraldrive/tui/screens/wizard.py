@@ -323,6 +323,21 @@ class FirstBootWizard(Screen):
             if proc.returncode != 0:
                 return proc.stderr.strip()
 
+            # Snapshot partition list BEFORE partprobe to detect the new one
+            pre_res = subprocess.run(
+                ["lsblk", "-ln", "-o", "NAME", self._boot_device],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            before_parts = set()
+            if pre_res.returncode == 0:
+                before_parts = {
+                    line.strip()
+                    for line in pre_res.stdout.strip().splitlines()
+                    if line.strip()
+                }
+
             subprocess.run(
                 ["sudo", "partprobe", self._boot_device],
                 capture_output=True,
@@ -333,21 +348,34 @@ class FirstBootWizard(Screen):
 
             time.sleep(2)
 
-            res = subprocess.run(
+            # Snapshot partition list AFTER partprobe
+            post_res = subprocess.run(
                 ["lsblk", "-ln", "-o", "NAME", self._boot_device],
                 capture_output=True,
                 text=True,
                 timeout=5,
             )
-            if res.returncode != 0:
+            if post_res.returncode != 0:
                 return "Could not determine new partition device"
-            parts = res.stdout.strip().splitlines()
-            if not parts:
-                return "No partitions found after creation"
-            new_part = f"/dev/{parts[-1].strip()}"
 
-            if new_part == self._boot_device:
-                return "Could not identify new partition (got base device)"
+            after_parts = {
+                line.strip()
+                for line in post_res.stdout.strip().splitlines()
+                if line.strip()
+            }
+
+            new_parts = after_parts - before_parts
+            # Filter out the base device name itself
+            base_name = os.path.basename(self._boot_device)
+            new_parts.discard(base_name)
+
+            if len(new_parts) != 1:
+                return (
+                    f"Expected exactly 1 new partition, found {len(new_parts)}: "
+                    f"{new_parts or 'none'}"
+                )
+
+            new_part = f"/dev/{new_parts.pop()}"
 
             proc = subprocess.run(
                 [
@@ -482,11 +510,13 @@ class FirstBootWizard(Screen):
 
     def _sudo_write(self, path: str, content: str, mode: str = "0644") -> str | None:
         try:
-            subprocess.run(
+            mkdir_proc = subprocess.run(
                 ["sudo", "mkdir", "-p", os.path.dirname(path)],
                 capture_output=True,
                 timeout=5,
             )
+            if mkdir_proc.returncode != 0:
+                return f"Failed to create dir for {path}: {mkdir_proc.stderr.decode().strip()}"
             proc = subprocess.run(
                 ["sudo", "tee", path],
                 input=content.encode(),
@@ -495,11 +525,13 @@ class FirstBootWizard(Screen):
             )
             if proc.returncode != 0:
                 return f"Failed to write {path}: {proc.stderr.decode().strip()}"
-            subprocess.run(
+            chmod_proc = subprocess.run(
                 ["sudo", "chmod", mode, path],
                 capture_output=True,
                 timeout=5,
             )
+            if chmod_proc.returncode != 0:
+                return f"Failed to chmod {path}: {chmod_proc.stderr.decode().strip()}"
             return None
         except (subprocess.TimeoutExpired, FileNotFoundError) as e:
             return f"Failed to write {path}: {e}"

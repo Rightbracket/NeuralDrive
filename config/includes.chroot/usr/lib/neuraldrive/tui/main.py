@@ -15,8 +15,6 @@ import sys
 import traceback
 from datetime import datetime
 
-from utils import config
-
 PERSIST_DIR = "/var/lib/neuraldrive"
 OVERLAY_LOG_DIR = "/var/log/neuraldrive"
 
@@ -96,7 +94,7 @@ class NeuralDriveTUI(App):
     def on_mount(self) -> None:
         self.push_screen(DashboardScreen())
         sentinel_exists = os.path.exists("/etc/neuraldrive/first-boot-complete")
-        if self._force_wizard or (not sentinel_exists and not config.wizard_complete()):
+        if self._force_wizard or not sentinel_exists:
             self.push_screen(FirstBootWizard())
 
     def _handle_exception(self, error: Exception) -> None:
