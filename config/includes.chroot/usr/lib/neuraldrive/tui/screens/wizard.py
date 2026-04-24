@@ -14,6 +14,8 @@ from utils import config
 SENTINEL = "/etc/neuraldrive/first-boot-complete"
 CREDENTIALS_PATH = "/etc/neuraldrive/credentials.conf"
 API_KEY_PATH = "/etc/neuraldrive/api.key"
+PERSISTENT_CREDENTIALS_PATH = "/var/lib/neuraldrive/config/credentials.conf"
+PERSISTENT_API_KEY_PATH = "/var/lib/neuraldrive/config/api.key"
 SUDOERS_PATH = "/etc/sudoers.d/neuraldrive-admin"
 PERSISTENCE_MOUNT = "/var/lib/neuraldrive"
 PERSISTENCE_CONF_CONTENT = "/var/lib/neuraldrive union\n/etc/neuraldrive union\n/var/log/neuraldrive union\n/home union\n"
@@ -121,7 +123,8 @@ class FirstBootWizard(Screen):
             body.update(
                 "NeuralDrive is ready.\n\n"
                 f"API Key: {self._generated_api_key}\n\n"
-                "Save this key — it is required for API access.\n"
+                "This key is stored at /etc/neuraldrive/api.key\n"
+                "and on persistent storage when available.\n"
                 "Press Finish to start using NeuralDrive."
             )
             next_btn.label = "Finish ✓"
@@ -517,17 +520,26 @@ class FirstBootWizard(Screen):
                 errors.append(f"Password change failed: {e}")
 
         if self._generated_api_key:
-            err = self._sudo_write(API_KEY_PATH, self._generated_api_key + "\n", "0600")
+            key_content = self._generated_api_key + "\n"
+            cred_content = f"api_key={self._generated_api_key}\n"
+
+            err = self._sudo_write(API_KEY_PATH, key_content, "0600")
+            if err:
+                errors.append(err)
+            err = self._sudo_write(CREDENTIALS_PATH, cred_content, "0600")
             if err:
                 errors.append(err)
 
-            err = self._sudo_write(
-                CREDENTIALS_PATH,
-                f"api_key={self._generated_api_key}\n",
-                "0600",
-            )
-            if err:
-                errors.append(err)
+            persist_dir = os.path.dirname(PERSISTENT_API_KEY_PATH)
+            if os.path.isdir(persist_dir):
+                err = self._sudo_write(PERSISTENT_API_KEY_PATH, key_content, "0600")
+                if err:
+                    errors.append(err)
+                err = self._sudo_write(
+                    PERSISTENT_CREDENTIALS_PATH, cred_content, "0600"
+                )
+                if err:
+                    errors.append(err)
 
         cfg_data = config.load()
         cfg_data["wizard_complete"] = True
