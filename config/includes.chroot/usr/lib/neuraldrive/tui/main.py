@@ -69,11 +69,11 @@ class NeuralDriveTUI(App):
     ENABLE_COMMAND_PALETTE = False
 
     BINDINGS = [
-        Binding("f2", "switch_screen('dashboard')", "F2 Dash", priority=True),
-        Binding("f3", "switch_screen('models')", "F3 Models", priority=True),
-        Binding("f4", "switch_screen('services')", "F4 Svc", priority=True),
+        Binding("f1", "switch_screen('dashboard')", "F1 Dash", priority=True),
+        Binding("f2", "switch_screen('models')", "F2 Models", priority=True),
+        Binding("f3", "switch_screen('services')", "F3 Svc", priority=True),
+        Binding("f4", "switch_screen('logs')", "F4 Logs", priority=True),
         Binding("f5", "switch_screen('chat')", "F5 Chat", priority=True),
-        Binding("f6", "switch_screen('logs')", "F6 Logs", priority=True),
         Binding("q", "quit", "Quit"),
         Binding("up", "focus_previous", "Previous", show=False),
         Binding("down", "focus_next", "Next", show=False),
