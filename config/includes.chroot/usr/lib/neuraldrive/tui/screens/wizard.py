@@ -303,6 +303,21 @@ class FirstBootWizard(Screen):
             if not free_start or not free_end:
                 return "No free space block large enough found"
 
+            # Snapshot partition list BEFORE mkpart so the diff is reliable
+            pre_res = subprocess.run(
+                ["lsblk", "-ln", "-o", "NAME", self._boot_device],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            before_parts = set()
+            if pre_res.returncode == 0:
+                before_parts = {
+                    line.strip()
+                    for line in pre_res.stdout.strip().splitlines()
+                    if line.strip()
+                }
+
             proc = subprocess.run(
                 [
                     "sudo",
@@ -322,21 +337,6 @@ class FirstBootWizard(Screen):
             )
             if proc.returncode != 0:
                 return proc.stderr.strip()
-
-            # Snapshot partition list BEFORE partprobe to detect the new one
-            pre_res = subprocess.run(
-                ["lsblk", "-ln", "-o", "NAME", self._boot_device],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            before_parts = set()
-            if pre_res.returncode == 0:
-                before_parts = {
-                    line.strip()
-                    for line in pre_res.stdout.strip().splitlines()
-                    if line.strip()
-                }
 
             subprocess.run(
                 ["sudo", "partprobe", self._boot_device],
