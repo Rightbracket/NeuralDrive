@@ -29,31 +29,50 @@ This launcher script (installed at `/usr/local/bin/neuraldrive-tui`) activates t
 The main dashboard provides a high-level overview of system health and active models.
 
 ```text
-┌──────────────── NeuralDrive v1.0.0 ──────────────────────────┐
+┌──────────────── NeuralDrive v1.0.0 ───────────────── 10:45:22 ─┐
 │ Host: neuraldrive.local    │ Uptime: 2h 15m │ IP: 192.168.1.50 │
-├──────────────────────────────────────────────────────────────┤
-│ GPU: NVIDIA RTX 4090  │ VRAM: 12.4/24.0 GB │ Temp: 65°C │ 85% │
-│ CPU: 12%              │ RAM: 18.2/64.0 GB  │ Disk: 45.2 GB    │
-├──────────────────────────────────────────────────────────────┤
-│ LOADED MODELS                                                │
-│ ● llama3.1:8b        [GPU] 4.7 GB   85 req/min              │
-│ ● codestral:latest   [GPU] 8.2 GB   12 req/min              │
-│ ○ phi3:mini           ---  (not loaded)                      │
-├──────────────────────────────────────────────────────────────┤
-│ [M]odels  [S]ervices  [N]etwork  [L]ogs  [C]hat  [Q]uit     │
-└──────────────────────────────────────────────────────────────┘
+├────────────────────────────────────────────────────────────────┤
+│ GPU: NVIDIA RTX 4090  │ VRAM: 12.4/24.0 GB │ Temp: 65°C │ 85%  │
+│ CPU: 12%              │ RAM: 18.2/64.0 GB  │ Disk: 45.2 GB     │
+├────────────────────────────────────────────────────────────────┤
+│ LOADED MODELS                                                  │
+│ ● llama3.1:8b        [GPU] 4.7 GB                              │
+│ ● codestral:latest   [GPU] 8.2 GB                              │
+│ ○ phi3:mini           ---  (not loaded)                        │
+├────────────────────────────────────────────────────────────────┤
+│ F1 Dashboard  F2 Models  F3 Services  F4 Logs  F5 Chat  Q Quit │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ## Navigation Keybindings
 
-Navigation is performed using single-letter hotkeys shown at the bottom of the screen:
+Navigation is performed using function keys:
 
-- **M:** Models screen for managing downloads and loading state.
-- **S:** Services screen for restarting or stopping system components.
-- **N:** Network screen for hostname and IP configuration.
-- **L:** Logs screen for real-time system and service logs.
-- **C:** Chat screen for a lightweight, terminal-based LLM chat.
+- **F1:** Dashboard overview.
+- **F2:** Models screen for managing downloads and loading state.
+- **F3:** Services screen for restarting or stopping system components.
+- **F4:** Logs screen for real-time system and service logs.
+- **F5:** Chat screen for a lightweight, terminal-based LLM chat.
 - **Q:** Quit the TUI and return to the shell.
+
+Within each screen, the following navigation model is used:
+- **Tab / Shift+Tab:** Cycle focus between different screen zones.
+- **Arrow Keys:** Navigate within a focused zone (e.g., scrolling a list).
+- **Enter:** Activate the currently focused element or button.
+
+## Troubleshooting and Debugging
+
+If the TUI encounters a critical error, it will write a crash dump to `/var/lib/neuraldrive/logs/tui-crash-*.log`.
+
+Screenshots captured within the TUI are saved to `/var/lib/neuraldrive/screenshots/`.
+
+### Re-running the First-Boot Wizard
+
+If you need to force the first-boot wizard to run again, launch the TUI with the `--wizard` flag:
+```bash
+neuraldrive-tui --wizard
+```
+This removes the sentinel file and initiates the guided setup process.
 
 ## Resilience
 

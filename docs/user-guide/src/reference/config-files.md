@@ -8,11 +8,16 @@ This document provides a complete reference for all critical configuration and s
 
 | File | Purpose | Format | Owner |
 | :--- | :--- | :--- | :--- |
-| `/etc/neuraldrive/ollama.conf` | Ollama environment variables | KEY=VALUE | root:neuraldrive-admin |
+| `/etc/neuraldrive/ollama.conf` | Ollama baked-in defaults | KEY=VALUE | root:neuraldrive-admin |
+| `/var/lib/neuraldrive/config/ollama.conf` | Persistent Ollama overrides | KEY=VALUE | root:neuraldrive-admin |
+| `/etc/neuraldrive/config.yaml` | TUI overlay fallback config | YAML | root:neuraldrive-admin |
+| `/var/lib/neuraldrive/config/config.yaml` | Persistent TUI configuration | YAML | root:neuraldrive-admin |
+| `/var/lib/neuraldrive/config/api.key` | Persistent API key | plaintext | root:root (600) |
+| `/etc/neuraldrive/api.key` | System API key (synced) | plaintext | root:root (600) |
+| `/var/lib/neuraldrive/config/credentials.conf` | Persistent credentials | KEY=VALUE | root:root (600) |
 | `/etc/neuraldrive/webui.env` | Open WebUI configuration | KEY=VALUE | root:neuraldrive-admin |
 | `/etc/neuraldrive/caddy.env` | Caddy API key environment | KEY=VALUE | root:neuraldrive-admin |
 | `/etc/neuraldrive/api.env` | System API environment | KEY=VALUE | root:neuraldrive-admin |
-| `/etc/neuraldrive/api.key` | API authentication key | plaintext | root:root (600) |
 | `/etc/neuraldrive/Caddyfile` | Caddy reverse proxy configuration | Caddyfile | root:neuraldrive-caddy |
 | `/etc/neuraldrive/nftables.conf` | Global firewall rules | nftables | root:root |
 | `/etc/neuraldrive/neuraldrive-models.yaml` | Model catalog definitions | YAML | root:neuraldrive-admin |
@@ -23,19 +28,26 @@ This document provides a complete reference for all critical configuration and s
 | `/etc/neuraldrive/firewall-custom.conf` | User-defined firewall rules | nftables | root:root |
 | `/run/neuraldrive/gpu.conf` | GPU detection results (at boot) | KEY=VALUE | root:root (runtime) |
 
+
 ## Key Configuration Reference
 
 ### `ollama.conf`
 
-Defines the behavior of the underlying LLM inference engine.
+Defines the behavior of the underlying LLM inference engine. The Ollama service uses two configuration sources:
+1. `/etc/neuraldrive/ollama.conf` — baked-in system defaults.
+2. `/var/lib/neuraldrive/config/ollama.conf` — persistent user overrides.
+
+Values in the persistent file override the system defaults.
 
 ```ini
 OLLAMA_HOST=127.0.0.1:11434
 OLLAMA_MODELS=/var/lib/neuraldrive/models/
 OLLAMA_KEEP_ALIVE=5m
-OLLAMA_MAX_LOADED_MODELS=1
+OLLAMA_MAX_LOADED_MODELS=0
 OLLAMA_NUM_PARALLEL=1
 ```
+
+**OLLAMA_MAX_LOADED_MODELS**: Set to `0` for "auto" mode. Ollama automatically manages how many models stay loaded based on available VRAM, using Least Recently Used (LRU) eviction when memory is required for a new request.
 
 ### `webui.env`
 

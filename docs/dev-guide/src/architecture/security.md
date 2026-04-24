@@ -31,7 +31,8 @@ Every service unit employs advanced systemd hardening directives:
 - `ProtectHome=yes`: Access to `/home` is denied.
 - `PrivateTmp=yes`: A private `/tmp` directory is created.
 - `NoNewPrivileges=yes`: Prevents the service and its children from gaining new privileges via `setuid` binaries.
-- `DeviceAllow`: Only the necessary GPU devices (`/dev/nvidia*`, `/dev/dri/*`) are permitted for the Ollama service.
+- `PrivateDevices=no`: Explicitly disabled for the Ollama service to allow access to GPU device nodes (`/dev/nvidia*`, `/dev/dri/*`) required for accelerated inference.
+- **DeviceAllow removal**: All `DeviceAllow` lines were removed from the Ollama service unit. On cgroup v2 systems, `DeviceAllow` uses eBPF device filters that blocked CUDA access even with explicit allow rules for GPU devices. Removing these rules was necessary to enable reliable GPU acceleration.
 
 ### 3. Authentication and Authorization
 NeuralDrive uses a dual-key system for authentication:

@@ -17,12 +17,25 @@ The script runs during the `neuraldrive-gpu-detect.service` phase. It performs t
 
 ### NVIDIA
 If an NVIDIA card is detected (PCI vendor ID `10de`), the script:
-- Loads the `nvidia`, `nvidia-uvm`, and `nvidia-drm` modules via `modprobe`.
+- Loads the `nvidia`, `nvidia-current-uvm`, and `nvidia-drm` modules via `modprobe`. Note that on Debian systems, the CUDA Unified Video Memory module is named `nvidia-current-uvm`, not `nvidia-uvm`.
+- Executes `nvidia-modprobe -u` to create the `/dev/nvidia-uvm` and `/dev/nvidia-uvm-tools` device nodes. Without these nodes, CUDA memory allocation fails silently, and Ollama falls back to CPU.
 - Enables persistence mode with `nvidia-smi -pm 1`.
 - Sets `VENDOR=NVIDIA` in the config file.
 - If module loading fails, records `NVIDIA_MODULE_MISSING=true`.
 
-### AMD
+## Boot-Time Module Loading
+
+In addition to the detection script, the system includes `/etc/modules-load.d/nvidia-uvm.conf`. This file contains `nvidia-current-uvm` to ensure the module is automatically loaded at boot.
+
+## Ollama Service Integration
+
+As a safety net, the Ollama systemd unit also includes `ExecStartPre` commands for both `modprobe nvidia-current-uvm` and `nvidia-modprobe -u`. This ensures the necessary drivers and device nodes are present even if the primary detection service is delayed.
+
+## cgroup v2 and Device Access
+
+On systems using cgroup v2, standard `DeviceAllow` rules in systemd units utilize eBPF filters that can inadvertently block CUDA access, even when explicit allow rules are defined. NeuralDrive avoids this by removing all `DeviceAllow` directives from the Ollama service and relying on `PrivateDevices=no` instead.
+
+## AMD
 If an AMD card is detected (PCI vendor ID `1002`), the script:
 - Loads the `amdgpu` module.
 - Sets `VENDOR=AMD`.

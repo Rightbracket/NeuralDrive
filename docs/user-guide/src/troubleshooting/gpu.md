@@ -28,6 +28,33 @@ lsmod | grep nouveau
 
 If the command returns any output, the blacklist failed. Check `/etc/modprobe.d/neuraldrive-blacklist.conf`.
 
+## Driver and Hardware Support
+
+### missing nvidia-uvm module
+
+If Ollama reports CPU-only inference despite having an NVIDIA GPU, the `nvidia-uvm` (Unified Video Memory) kernel module may not be loaded. This module is essential for CUDA memory allocation.
+
+1.  **Verify Module**: Check if the module is loaded:
+    ```bash
+    lsmod | grep nvidia_uvm
+    ```
+2.  **Naming Convention**: On NeuralDrive (based on Debian), the module is named `nvidia-current-uvm`.
+3.  **Manual Load**: If missing, load it manually:
+    ```bash
+    sudo modprobe nvidia-current-uvm && nvidia-modprobe -u
+    ```
+4.  **Automatic Loading**: NeuralDrive should load this automatically at boot via `/etc/modules-load.d/nvidia-uvm.conf`. If it fails, check the `journalctl -u neuraldrive-ollama` logs for `ExecStartPre` failures.
+
+Without this module, `/dev/nvidia-uvm` device nodes will be missing, causing CUDA calls to fail silently and Ollama to fall back to CPU.
+
+### cgroup v2 / DeviceAllow blocking
+
+If the GPU is detected by the system but Ollama still falls back to CPU inference, systemd `DeviceAllow` rules might be blocking access.
+
+1.  **cgroup v2 Behavior**: On systems using cgroup v2, `DeviceAllow` uses eBPF device filters. These filters can block CUDA access even when explicit allow rules for `/dev/nvidia*` and `/dev/dri/*` are present.
+2.  **NeuralDrive Default**: The default NeuralDrive Ollama service has all `DeviceAllow` lines removed to prevent this.
+3.  **Custom Units**: If you have modified the service unit and re-added `DeviceAllow` rules, remove them and ensure `PrivateDevices=no` is set to restore GPU access.
+
 ## Diagnostic Tools
 
 NeuralDrive provides several utilities to inspect GPU state:
