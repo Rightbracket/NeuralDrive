@@ -317,7 +317,8 @@ class ModelsScreen(Screen):
         btn_id = btn.id or ""
         if btn_id == "pull-btn":
             name = self.query_one("#pull-input", Input).value.strip()
-            if name:
+            if name and not self._pulling:
+                self._pulling = True
                 self._start_pull(name)
         elif btn_id == "open-catalog":
             installed = {m.get("name", "") for m in await api_client.list_models()}
@@ -335,6 +336,7 @@ class ModelsScreen(Screen):
         if event.input.id == "pull-input" and not self._pulling:
             name = event.input.value.strip()
             if name:
+                self._pulling = True
                 self._start_pull(name)
 
     def _cancel_pull(self) -> None:
