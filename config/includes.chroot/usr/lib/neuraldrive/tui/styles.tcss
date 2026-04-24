@@ -99,6 +99,11 @@ Static.muted {
     background: #1F1F1F;
 }
 
+.model-highlighted {
+    background: #1F1F1F;
+    border: solid #F59E0B;
+}
+
 .model-item Static {
     height: 100%;
     content-align: left middle;
@@ -453,4 +458,10 @@ Button.catalog-installed {
 
 #catalog-buttons Button {
     margin: 0 2;
+}
+
+#models-scroll {
+    height: 1fr;
+    scrollbar-background: #141414;
+    scrollbar-color: #2E2E2E;
 }

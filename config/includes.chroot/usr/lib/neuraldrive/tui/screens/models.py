@@ -235,11 +235,17 @@ class ModelCatalog(Screen):
 
 
 class ModelsScreen(Screen):
-    BINDINGS = [("r", "refresh", "Refresh")]
+    BINDINGS = [
+        ("r", "refresh", "Refresh"),
+        Binding("up", "nav_up", show=False, priority=True),
+        Binding("down", "nav_down", show=False, priority=True),
+        Binding("pageup", "page_up", show=False, priority=True),
+        Binding("pagedown", "page_down", show=False, priority=True),
+    ]
 
     def compose(self) -> ComposeResult:
         yield SafeHeader()
-        with VerticalScroll():
+        with VerticalScroll(id="models-scroll"):
             yield Static("Installed Models", classes="heading")
             yield Vertical(id="model-list")
             yield Static("", classes="heading")
@@ -264,7 +270,44 @@ class ModelsScreen(Screen):
         self.query_one("#cancel-pull", Button).display = False
         self._pull_queue: list[str] = []
         self._pulling = False
+        self._model_items: list[ModelItem] = []
+        self._highlight_index = 0
         self.action_refresh()
+
+    def _apply_highlight(self) -> None:
+        for i, item in enumerate(self._model_items):
+            if i == self._highlight_index:
+                item.add_class("model-highlighted")
+                item.scroll_visible()
+            else:
+                item.remove_class("model-highlighted")
+
+    def action_nav_up(self) -> None:
+        if self._model_items and self._highlight_index > 0:
+            self._highlight_index -= 1
+            self._apply_highlight()
+
+    def action_nav_down(self) -> None:
+        if self._model_items and self._highlight_index < len(self._model_items) - 1:
+            self._highlight_index += 1
+            self._apply_highlight()
+
+    def action_page_up(self) -> None:
+        if not self._model_items:
+            return
+        scroll = self.query_one("#models-scroll", VerticalScroll)
+        page_size = max(1, scroll.size.height // 6)
+        self._highlight_index = max(0, self._highlight_index - page_size)
+        self._apply_highlight()
+
+    def action_page_down(self) -> None:
+        if not self._model_items:
+            return
+        scroll = self.query_one("#models-scroll", VerticalScroll)
+        page_size = max(1, scroll.size.height // 6)
+        last = len(self._model_items) - 1
+        self._highlight_index = min(last, self._highlight_index + page_size)
+        self._apply_highlight()
 
     def action_refresh(self) -> None:
         self.app.call_later(self._load_models)
@@ -288,6 +331,7 @@ class ModelsScreen(Screen):
 
         container = self.query_one("#model-list", Vertical)
         container.remove_children()
+        self._model_items = []
 
         if not all_models:
             container.mount(Static("  No models installed", classes="muted"))
@@ -310,9 +354,15 @@ class ModelsScreen(Screen):
                 else:
                     vram_str = "—"
 
-                container.mount(
-                    ModelItem(name, size_str, params, quant, vram_str, loaded)
-                )
+                item = ModelItem(name, size_str, params, quant, vram_str, loaded)
+                container.mount(item)
+                self._model_items.append(item)
+
+        if self._model_items:
+            self._highlight_index = min(
+                self._highlight_index, len(self._model_items) - 1
+            )
+            self._apply_highlight()
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         btn = event.button
