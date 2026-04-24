@@ -284,8 +284,8 @@ Button.svc-restart {
     background: #1F1F1F;
     color: #F59E0B;
     border: solid #F59E0B;
-    min-width: 10;
-    width: 10;
+    min-width: 11;
+    width: 11;
     height: 3;
 }
 
