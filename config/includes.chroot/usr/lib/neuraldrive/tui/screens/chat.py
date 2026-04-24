@@ -52,6 +52,7 @@ class ChatScreen(Screen):
 
         models = await api_client.list_models()
         options = [(m.get("name", "?"), m.get("name", "?")) for m in models]
+        previous = select.value
         select.set_options(options)
 
         if not options:
@@ -67,7 +68,10 @@ class ChatScreen(Screen):
         notice.remove_class("error", "warn")
         send_btn.disabled = False
         chat_input.disabled = False
-        if select.value is Select.BLANK:
+        option_values = [v for _, v in options]
+        if previous is not Select.BLANK and previous in option_values:
+            select.value = previous
+        elif select.value is Select.BLANK:
             select.value = options[0][1]
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
