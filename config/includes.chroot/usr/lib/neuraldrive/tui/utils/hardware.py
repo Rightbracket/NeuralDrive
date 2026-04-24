@@ -157,7 +157,16 @@ def get_boot_device() -> str | None:
             if part.startswith("boot=live") or part.startswith("root="):
                 pass
             if part.startswith("live-media="):
-                return part.split("=", 1)[1]
+                media_dev = part.split("=", 1)[1]
+                pkname_res = subprocess.run(
+                    ["lsblk", "-no", "PKNAME", media_dev],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if pkname_res.returncode == 0 and pkname_res.stdout.strip():
+                    return f"/dev/{pkname_res.stdout.strip()}"
+                return media_dev
         res = subprocess.run(
             ["findmnt", "-n", "-o", "SOURCE", "/run/live/medium"],
             capture_output=True,

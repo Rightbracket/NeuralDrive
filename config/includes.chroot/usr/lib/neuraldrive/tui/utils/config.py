@@ -82,7 +82,3 @@ def set_key(key: str, value: Any) -> str | None:
         target = target[k]
     target[keys[-1]] = value
     return save(data)
-
-
-def wizard_complete() -> bool:
-    return get("wizard_complete", False) is True

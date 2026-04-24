@@ -361,6 +361,7 @@ class ModelsScreen(Screen):
             self.app.call_later(self._load_models)
             return
         model_name = self._pull_queue.pop(0)
+        self._pulling = True
         self._start_pull(model_name)
 
     @work(exclusive=True)

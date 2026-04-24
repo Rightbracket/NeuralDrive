@@ -395,11 +395,14 @@ class FirstBootWizard(Screen):
             if proc.returncode != 0:
                 return f"mkfs.ext4 failed: {proc.stderr.strip()}"
 
-            subprocess.run(
+            proc = subprocess.run(
                 ["sudo", "mkdir", "-p", "/mnt/persistence"],
                 capture_output=True,
+                text=True,
                 timeout=5,
             )
+            if proc.returncode != 0:
+                return f"mkdir /mnt/persistence failed: {proc.stderr.strip()}"
             proc = subprocess.run(
                 ["sudo", "mount", new_part, "/mnt/persistence"],
                 capture_output=True,
@@ -426,13 +429,16 @@ class FirstBootWizard(Screen):
                 "/mnt/persistence/etc/neuraldrive",
                 "/mnt/persistence/home",
             ]:
-                subprocess.run(
+                proc = subprocess.run(
                     ["sudo", "mkdir", "-p", d],
                     capture_output=True,
+                    text=True,
                     timeout=5,
                 )
+                if proc.returncode != 0:
+                    return f"mkdir {d} failed: {proc.stderr.strip()}"
 
-            subprocess.run(
+            proc = subprocess.run(
                 [
                     "sudo",
                     "chown",
@@ -441,20 +447,29 @@ class FirstBootWizard(Screen):
                     "/mnt/persistence/var/lib/neuraldrive/ollama",
                 ],
                 capture_output=True,
+                text=True,
                 timeout=5,
             )
+            if proc.returncode != 0:
+                return f"chown failed: {proc.stderr.strip()}"
 
-            subprocess.run(
+            proc = subprocess.run(
                 ["sudo", "umount", "/mnt/persistence"],
                 capture_output=True,
+                text=True,
                 timeout=10,
             )
+            if proc.returncode != 0:
+                return f"umount /mnt/persistence failed: {proc.stderr.strip()}"
 
-            subprocess.run(
+            proc = subprocess.run(
                 ["sudo", "mkdir", "-p", PERSISTENCE_MOUNT],
                 capture_output=True,
+                text=True,
                 timeout=5,
             )
+            if proc.returncode != 0:
+                return f"mkdir {PERSISTENCE_MOUNT} failed: {proc.stderr.strip()}"
             proc = subprocess.run(
                 ["sudo", "mount", new_part, PERSISTENCE_MOUNT],
                 capture_output=True,
@@ -464,11 +479,16 @@ class FirstBootWizard(Screen):
             if proc.returncode != 0:
                 return f"Mount at {PERSISTENCE_MOUNT} failed: {proc.stderr.strip()}"
 
-            subprocess.run(
+            proc = subprocess.run(
                 ["sudo", "systemctl", "restart", "neuraldrive-ollama"],
                 capture_output=True,
+                text=True,
                 timeout=30,
             )
+            if proc.returncode != 0:
+                self.query_one("#wiz-error", Static).update(
+                    f"Warning: Ollama restart failed: {proc.stderr.strip()}"
+                )
 
             self._has_persistence = True
             return None
@@ -578,7 +598,6 @@ class FirstBootWizard(Screen):
                     errors.append(err)
 
         cfg_data = config.load()
-        cfg_data["wizard_complete"] = True
         if self._admin_password:
             cfg_data["security"] = {"password_set": True}
         if self._wifi_ssid:
