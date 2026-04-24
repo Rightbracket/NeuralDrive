@@ -253,6 +253,13 @@ class ModelsScreen(Screen):
     def compose(self) -> ComposeResult:
         yield SafeHeader()
         yield Static("Installed Models", classes="heading")
+        with Horizontal(id="model-legend"):
+            yield Static("Model", classes="legend-name")
+            yield Static("Params", classes="legend-col legend-params")
+            yield Static("Quant", classes="legend-col legend-quant")
+            yield Static("Disk", classes="legend-col legend-disk")
+            yield Static("VRAM", classes="legend-col legend-vram")
+            yield Static("Status", classes="legend-col legend-status")
         yield VerticalScroll(id="model-list")
         yield Button(
             "Browse Available Models",
@@ -331,7 +338,7 @@ class ModelsScreen(Screen):
         if not self._model_items:
             return []
         item = self._model_items[self._highlight_index]
-        return item.get_action_buttons()
+        return [b for b in item.get_action_buttons() if not b.disabled]
 
     def _apply_btn_highlight(self) -> None:
         buttons = self._get_active_buttons()
@@ -585,6 +592,15 @@ class ModelsScreen(Screen):
     async def _load_to_vram(self, model_name: str) -> None:
         status = self.query_one("#model-status", Static)
         status.update(f"Loading {model_name} into VRAM...")
+        load_btn = None
+        try:
+            load_btn = self.query_one(
+                f"Button.model-load[name='{model_name}']", Button
+            )
+            load_btn.label = "Loading…"
+            load_btn.disabled = True
+        except Exception:
+            pass
         success = await api_client.load_model(model_name)
         if success:
             status.update(f"  \u2713 {model_name} loaded into VRAM")
@@ -593,15 +609,27 @@ class ModelsScreen(Screen):
         await self._load_models()
 
     @work()
-    async def _unload_from_vram(self, model_name: str) -> None:
+    async def _load_to_vram(self, model_name: str) -> None:
         status = self.query_one("#model-status", Static)
-        status.update(f"Unloading {model_name}...")
-        success = await api_client.unload_model(model_name)
+        status.update(f"Loading {model_name} into VRAM...")
+        load_btn = self._find_model_button(model_name, "model-load")
+        if load_btn:
+            load_btn.label = "Loading\u2026"
+            load_btn.disabled = True
+        success = await api_client.load_model(model_name)
         if success:
-            status.update(f"  \u2713 {model_name} unloaded from VRAM")
+            status.update(f"  \u2713 {model_name} loaded into VRAM")
         else:
-            status.update(f"  \u2717 Failed to unload {model_name}")
+            status.update(f"  \u2717 Failed to load {model_name}")
         await self._load_models()
+
+    def _find_model_button(self, model_name: str, btn_class: str) -> Button | None:
+        for item in self._model_items:
+            if item.name == model_name:
+                for btn in item.query("Button"):
+                    if btn.has_class(btn_class):
+                        return btn
+        return None
 
     @work()
     async def _delete_model(self, model_name: str) -> None:

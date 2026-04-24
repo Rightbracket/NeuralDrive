@@ -471,6 +471,41 @@ Button.catalog-installed {
     scrollbar-color: #2E2E2E;
 }
 
+#model-legend {
+    height: 1;
+    padding: 0 2;
+    color: #71717A;
+}
+
+#model-legend Static.legend-name {
+    width: 1fr;
+    color: #71717A;
+}
+
+#model-legend Static.legend-col {
+    color: #71717A;
+}
+
+Static.legend-params {
+    width: 8;
+}
+
+Static.legend-quant {
+    width: 10;
+}
+
+Static.legend-disk {
+    width: 10;
+}
+
+Static.legend-vram {
+    width: 12;
+}
+
+Static.legend-status {
+    width: 10;
+}
+
 #pull-input-row {
     height: auto;
     layout: horizontal;
