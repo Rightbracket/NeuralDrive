@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
@@ -15,7 +17,9 @@ class DashboardScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
         with VerticalScroll():
-            yield Static("", id="dash-hostname")
+            with Horizontal(id="dash-topbar"):
+                yield Static("", id="dash-hostname")
+                yield Static("", id="dash-clock")
             with Horizontal(id="stats-panel"):
                 yield StatsBox("CPU", [("Usage", "…")], id="box-cpu")
                 yield StatsBox("Memory", [("Used", "…"), ("Total", "…")], id="box-mem")
@@ -44,6 +48,8 @@ class DashboardScreen(Screen):
         self.query_one("#dash-hostname", Static).update(
             f"  {hostname}  •  {ip}  •  up {uptime}"
         )
+        now = datetime.now().strftime("%H:%M:%S")
+        self.query_one("#dash-clock", Static).update(now)
 
         cpu = hardware.get_cpu_percent()
         self.query_one("#box-cpu", StatsBox).update_row("Usage", f"{cpu:.0f}%")

@@ -56,6 +56,22 @@ Static.muted {
     padding: 1;
 }
 
+#dash-topbar {
+    height: 1;
+    layout: horizontal;
+}
+
+#dash-hostname {
+    width: 1fr;
+}
+
+#dash-clock {
+    width: auto;
+    color: #A1A1AA;
+    padding: 0 2;
+    text-align: right;
+}
+
 .stats-box {
     border: solid #2E2E2E;
     padding: 1 2;
