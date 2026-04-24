@@ -256,9 +256,13 @@ class ModelsScreen(Screen):
         with Horizontal(id="model-legend"):
             yield Static("Model", classes="legend-name")
             yield Static("Params", classes="legend-col legend-params")
+            yield Static("/", classes="legend-sep")
             yield Static("Quant", classes="legend-col legend-quant")
+            yield Static("/", classes="legend-sep")
             yield Static("Disk", classes="legend-col legend-disk")
+            yield Static("/", classes="legend-sep")
             yield Static("VRAM", classes="legend-col legend-vram")
+            yield Static("/", classes="legend-sep")
             yield Static("Status", classes="legend-col legend-status")
         yield VerticalScroll(id="model-list")
         yield Button(
@@ -592,26 +596,6 @@ class ModelsScreen(Screen):
     async def _load_to_vram(self, model_name: str) -> None:
         status = self.query_one("#model-status", Static)
         status.update(f"Loading {model_name} into VRAM...")
-        load_btn = None
-        try:
-            load_btn = self.query_one(
-                f"Button.model-load[name='{model_name}']", Button
-            )
-            load_btn.label = "Loading…"
-            load_btn.disabled = True
-        except Exception:
-            pass
-        success = await api_client.load_model(model_name)
-        if success:
-            status.update(f"  \u2713 {model_name} loaded into VRAM")
-        else:
-            status.update(f"  \u2717 Failed to load {model_name}")
-        await self._load_models()
-
-    @work()
-    async def _load_to_vram(self, model_name: str) -> None:
-        status = self.query_one("#model-status", Static)
-        status.update(f"Loading {model_name} into VRAM...")
         load_btn = self._find_model_button(model_name, "model-load")
         if load_btn:
             load_btn.label = "Loading\u2026"
@@ -621,6 +605,17 @@ class ModelsScreen(Screen):
             status.update(f"  \u2713 {model_name} loaded into VRAM")
         else:
             status.update(f"  \u2717 Failed to load {model_name}")
+        await self._load_models()
+
+    @work()
+    async def _unload_from_vram(self, model_name: str) -> None:
+        status = self.query_one("#model-status", Static)
+        status.update(f"Unloading {model_name}...")
+        success = await api_client.unload_model(model_name)
+        if success:
+            status.update(f"  \u2713 {model_name} unloaded from VRAM")
+        else:
+            status.update(f"  \u2717 Failed to unload {model_name}")
         await self._load_models()
 
     def _find_model_button(self, model_name: str, btn_class: str) -> Button | None:

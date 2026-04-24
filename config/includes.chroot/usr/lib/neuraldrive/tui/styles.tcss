@@ -486,6 +486,11 @@ Button.catalog-installed {
     color: #71717A;
 }
 
+#model-legend Static.legend-sep {
+    width: 1;
+    color: #52525B;
+}
+
 Static.legend-params {
     width: 8;
 }
