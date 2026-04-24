@@ -166,7 +166,8 @@ def get_boot_device() -> str | None:
                 )
                 if pkname_res.returncode == 0 and pkname_res.stdout.strip():
                     return f"/dev/{pkname_res.stdout.strip()}"
-                return media_dev
+                # PKNAME failed — fall through to findmnt instead of
+                # returning an unvalidated partition/symlink path.
         res = subprocess.run(
             ["findmnt", "-n", "-o", "SOURCE", "/run/live/medium"],
             capture_output=True,
