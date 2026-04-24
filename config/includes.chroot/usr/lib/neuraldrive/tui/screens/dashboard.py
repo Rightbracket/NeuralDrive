@@ -31,7 +31,7 @@ class DashboardScreen(Screen):
                     [("Device", "…"), ("VRAM", "…"), ("Temp", "…"), ("Util", "…")],
                     id="box-gpu",
                 )
-            yield Static("Active Models (VRAM)", classes="heading")
+            yield Static("Active Models", classes="heading")
             yield Vertical(id="loaded-models")
             yield Static("Services", classes="heading")
             yield Vertical(id="service-badges")
@@ -101,9 +101,15 @@ class DashboardScreen(Screen):
         else:
             for m in running:
                 name = m.get("name", "unknown")
+                size_vram = m.get("size_vram", 0)
                 size_bytes = m.get("size", 0)
-                size_gb = f"{size_bytes / (1024**3):.1f} GB" if size_bytes else ""
-                container.mount(Static(f"  ● {name}  {size_gb}", classes="ok"))
+                if size_vram and size_vram > 0:
+                    vram_gb = f"{size_vram / (1024**3):.1f} GB"
+                    tag = f"[GPU] {vram_gb}"
+                else:
+                    ram_gb = f"{size_bytes / (1024**3):.1f} GB" if size_bytes else ""
+                    tag = f"[CPU] {ram_gb}"
+                container.mount(Static(f"  ● {name}  {tag}", classes="ok"))
 
     def action_refresh(self) -> None:
         self._refresh_system()
