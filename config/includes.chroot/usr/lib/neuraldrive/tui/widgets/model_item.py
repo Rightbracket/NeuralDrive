@@ -30,7 +30,7 @@ class ModelItem(Horizontal):
         yield Static(self._model_size, classes="model-disk")
         yield Static(self._vram_str, classes="model-vram")
         if self._loaded:
-            yield Static("● VRAM", classes="model-status-loaded")
+            yield Static("● GPU", classes="model-status-loaded")
         else:
             yield Static("○ ready", classes="model-status-cached")
         load_btn = Button("Load", name=self._model_name, classes="model-load")

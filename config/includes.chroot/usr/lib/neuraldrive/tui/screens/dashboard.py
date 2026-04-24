@@ -105,10 +105,10 @@ class DashboardScreen(Screen):
                 size_bytes = m.get("size", 0)
                 if size_vram and size_vram > 0:
                     vram_gb = f"{size_vram / (1024**3):.1f} GB"
-                    tag = f"[GPU] {vram_gb}"
+                    tag = f"\\[GPU] {vram_gb}"
                 else:
                     ram_gb = f"{size_bytes / (1024**3):.1f} GB" if size_bytes else ""
-                    tag = f"[CPU] {ram_gb}"
+                    tag = f"\\[CPU] {ram_gb}"
                 container.mount(Static(f"  ● {name}  {tag}", classes="ok"))
 
     def action_refresh(self) -> None:
