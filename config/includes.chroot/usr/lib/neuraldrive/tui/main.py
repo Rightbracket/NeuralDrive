@@ -9,6 +9,7 @@ from screens.logs import LogsScreen
 from screens.chat import ChatScreen
 from screens.wizard import FirstBootWizard
 
+import argparse
 import os
 import sys
 import traceback
@@ -88,10 +89,14 @@ class NeuralDriveTUI(App):
         "chat": ChatScreen,
     }
 
+    def __init__(self, force_wizard: bool = False) -> None:
+        super().__init__()
+        self._force_wizard = force_wizard
+
     def on_mount(self) -> None:
         self.push_screen(DashboardScreen())
         sentinel_exists = os.path.exists("/etc/neuraldrive/first-boot-complete")
-        if not sentinel_exists and not config.wizard_complete():
+        if self._force_wizard or (not sentinel_exists and not config.wizard_complete()):
             self.push_screen(FirstBootWizard())
 
     def _handle_exception(self, error: Exception) -> None:
@@ -112,10 +117,16 @@ class NeuralDriveTUI(App):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="NeuralDrive TUI")
+    parser.add_argument(
+        "--wizard", action="store_true", help="Force the first-boot wizard to run"
+    )
+    args = parser.parse_args()
+
     screenshot_dir = _screenshot_dir()
     os.environ["TEXTUAL_SCREENSHOT_LOCATION"] = screenshot_dir
     try:
-        app = NeuralDriveTUI()
+        app = NeuralDriveTUI(force_wizard=args.wizard)
         app.run(mouse=False)
     except Exception as exc:
         dump_path = _write_crash_dump(exc)

@@ -331,6 +331,12 @@ class ModelsScreen(Screen):
         elif btn.has_class("model-delete"):
             self._delete_model(btn.name or "")
 
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if event.input.id == "pull-input":
+            name = event.input.value.strip()
+            if name:
+                self._start_pull(name)
+
     def _cancel_pull(self) -> None:
         self._pull_queue.clear()
         self.workers.cancel_group(self, "default")

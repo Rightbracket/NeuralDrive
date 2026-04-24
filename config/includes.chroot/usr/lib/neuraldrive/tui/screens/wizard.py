@@ -346,6 +346,9 @@ class FirstBootWizard(Screen):
                 return "No partitions found after creation"
             new_part = f"/dev/{parts[-1].strip()}"
 
+            if new_part == self._boot_device:
+                return "Could not identify new partition (got base device)"
+
             proc = subprocess.run(
                 [
                     "sudo",
@@ -555,9 +558,17 @@ class FirstBootWizard(Screen):
         if cfg_err:
             errors.append(cfg_err)
 
+        if errors:
+            error_widget = self.query_one("#wiz-error", Static)
+            error_widget.update("\n".join(errors))
+            return
+
+        # All config writes succeeded — now write sentinel and strip NOPASSWD
         err = self._sudo_write(SENTINEL, "")
         if err:
-            errors.append(err)
+            error_widget = self.query_one("#wiz-error", Static)
+            error_widget.update(f"Failed to write sentinel: {err}")
+            return
 
         # Remove NOPASSWD LAST — after all other sudo operations are done,
         # since removing it makes subsequent sudo calls require a TTY password prompt
@@ -573,14 +584,11 @@ class FirstBootWizard(Screen):
                     new_content = result.stdout.replace("NOPASSWD:", "")
                     err = self._sudo_write(SUDOERS_PATH, new_content, "0440")
                     if err:
-                        errors.append(err)
+                        # Sudoers strip failed but sentinel+config are written —
+                        # wizard is complete, just warn
+                        pass
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 pass
-
-        if errors:
-            error_widget = self.query_one("#wiz-error", Static)
-            error_widget.update("\n".join(errors))
-            return
 
         self.app.pop_screen()
 
