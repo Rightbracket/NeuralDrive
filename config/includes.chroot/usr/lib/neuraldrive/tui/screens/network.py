@@ -5,7 +5,9 @@ import psutil
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Footer, Static
+
+from widgets.safe_header import SafeHeader
 
 from utils import hardware
 
@@ -14,7 +16,7 @@ class NetworkScreen(Screen):
     BINDINGS = [("r", "refresh", "Refresh")]
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield SafeHeader()
         with VerticalScroll():
             yield Static("Network Configuration", classes="heading")
             yield Static("", id="net-hostname")

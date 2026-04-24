@@ -7,7 +7,9 @@ from textual import work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Header, Input, ProgressBar, Static
+from textual.widgets import Button, Footer, Input, ProgressBar, Static
+
+from widgets.safe_header import SafeHeader
 
 from textual.binding import Binding
 
@@ -80,7 +82,7 @@ class ModelCatalog(Screen):
         self._zone = "list"
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield SafeHeader()
         yield Static(
             "  ↑↓ Navigate   Enter Select   Tab Actions   Esc Back", classes="muted"
         )
@@ -236,7 +238,7 @@ class ModelsScreen(Screen):
     BINDINGS = [("r", "refresh", "Refresh")]
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield SafeHeader()
         with VerticalScroll():
             yield Static("Installed Models", classes="heading")
             yield Vertical(id="model-list")

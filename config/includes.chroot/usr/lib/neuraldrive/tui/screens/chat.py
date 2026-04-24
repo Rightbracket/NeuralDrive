@@ -6,7 +6,9 @@ from textual import work
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Header, Input, RichLog, Select, Static
+from textual.widgets import Button, Footer, Input, RichLog, Select, Static
+
+from widgets.safe_header import SafeHeader
 
 from utils import api_client
 
@@ -19,7 +21,7 @@ class ChatScreen(Screen):
         self._messages: list[dict] = []
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield SafeHeader()
         with Horizontal(id="chat-model-row"):
             yield Static(" Model ", id="chat-model-label")
             yield Select([], id="chat-model-select", prompt="Choose a model…")

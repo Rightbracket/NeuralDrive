@@ -6,7 +6,9 @@ from textual import work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Header, Static
+from textual.widgets import Button, Footer, Static
+
+from widgets.safe_header import SafeHeader
 
 from textual.binding import Binding
 
@@ -21,7 +23,7 @@ class ServicesScreen(Screen):
     ]
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield SafeHeader()
         with VerticalScroll():
             yield Static("NeuralDrive Services", classes="heading")
             yield Vertical(id="service-list")

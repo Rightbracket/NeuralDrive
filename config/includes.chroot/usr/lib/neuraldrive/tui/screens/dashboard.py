@@ -5,7 +5,9 @@ from datetime import datetime
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Footer, Static
+
+from widgets.safe_header import SafeHeader
 
 from utils import api_client, hardware
 from widgets.stats_box import StatsBox
@@ -15,7 +17,7 @@ class DashboardScreen(Screen):
     BINDINGS = [("r", "refresh", "Refresh")]
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield SafeHeader()
         with VerticalScroll():
             with Horizontal(id="dash-topbar"):
                 yield Static("", id="dash-hostname")

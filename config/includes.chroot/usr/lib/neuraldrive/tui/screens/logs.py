@@ -5,7 +5,9 @@ import subprocess
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.screen import Screen
-from textual.widgets import Footer, Header, RichLog, Select, Static
+from textual.widgets import Footer, RichLog, Select, Static
+
+from widgets.safe_header import SafeHeader
 
 from utils import hardware
 
@@ -19,7 +21,7 @@ class LogsScreen(Screen):
     BINDINGS = [("r", "refresh", "Refresh")]
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield SafeHeader()
         with Horizontal():
             yield Static("  Service: ", classes="label")
             yield Select(
