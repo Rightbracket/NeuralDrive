@@ -56,7 +56,7 @@ async def delete_model(name: str) -> bool:
         return False
 
 
-async def load_model(name: str, keep_alive: str = "5m") -> bool:
+async def load_model(name: str, keep_alive: str | int = "5m") -> bool:
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, read=300.0)) as client:
             resp = await client.post(

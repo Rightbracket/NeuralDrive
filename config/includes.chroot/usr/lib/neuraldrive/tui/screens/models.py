@@ -600,7 +600,7 @@ class ModelsScreen(Screen):
         if load_btn:
             load_btn.label = "Loading\u2026"
             load_btn.disabled = True
-        success = await api_client.load_model(model_name, keep_alive="-1")
+        success = await api_client.load_model(model_name, keep_alive=-1)
         if success:
             status.update(f"  \u2713 {model_name} loaded into VRAM")
         else:
