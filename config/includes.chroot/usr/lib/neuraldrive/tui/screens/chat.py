@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from textual import work
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.screen import Screen
@@ -19,9 +20,9 @@ class ChatScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        with Horizontal():
-            yield Static("  Model: ", classes="label")
-            yield Select([], id="chat-model-select")
+        yield Static("  Model", classes="heading")
+        yield Select([], id="chat-model-select", prompt="Choose a model…")
+        yield Static("", id="chat-notice")
         yield RichLog(highlight=True, markup=False, id="chat-log")
         with Horizontal(id="chat-input-row"):
             yield Input(placeholder="Type a message…", id="chat-input")
@@ -31,23 +32,52 @@ class ChatScreen(Screen):
     def on_mount(self) -> None:
         self.app.call_later(self._load_model_options)
 
+    def on_screen_resume(self) -> None:
+        self.app.call_later(self._load_model_options)
+
     async def _load_model_options(self) -> None:
-        models = await api_client.list_models()
+        notice = self.query_one("#chat-notice", Static)
         select = self.query_one("#chat-model-select", Select)
+        send_btn = self.query_one("#chat-send", Button)
+        chat_input = self.query_one("#chat-input", Input)
+
+        available = await api_client.ollama_available()
+        if not available:
+            notice.update("  Ollama is not running. Start it from the Services screen.")
+            notice.add_class("error")
+            send_btn.disabled = True
+            chat_input.disabled = True
+            return
+
+        models = await api_client.list_models()
         options = [(m.get("name", "?"), m.get("name", "?")) for m in models]
         select.set_options(options)
-        if options:
+
+        if not options:
+            notice.update(
+                "  No models installed. Pull a model from the Models screen (press M)."
+            )
+            notice.add_class("warn")
+            send_btn.disabled = True
+            chat_input.disabled = True
+            return
+
+        notice.update("")
+        notice.remove_class("error", "warn")
+        send_btn.disabled = False
+        chat_input.disabled = False
+        if select.value is Select.BLANK:
             select.value = options[0][1]
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "chat-send":
-            await self._send_message()
+            self._do_send()
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == "chat-input":
-            await self._send_message()
+            self._do_send()
 
-    async def _send_message(self) -> None:
+    def _do_send(self) -> None:
         input_widget = self.query_one("#chat-input", Input)
         text = input_widget.value.strip()
         if not text:
@@ -56,6 +86,8 @@ class ChatScreen(Screen):
         select = self.query_one("#chat-model-select", Select)
         model = str(select.value) if select.value is not Select.BLANK else ""
         if not model:
+            log = self.query_one("#chat-log", RichLog)
+            log.write("[error] No model selected. Choose a model from the dropdown.")
             return
 
         log = self.query_one("#chat-log", RichLog)
@@ -63,7 +95,17 @@ class ChatScreen(Screen):
         input_widget.value = ""
 
         self._messages.append({"role": "user", "content": text})
-        log.write(f"\n[{model}] ", end="")
+        self._stream_response(model)
+
+    @work(exclusive=True)
+    async def _stream_response(self, model: str) -> None:
+        log = self.query_one("#chat-log", RichLog)
+        send_btn = self.query_one("#chat-send", Button)
+        chat_input = self.query_one("#chat-input", Input)
+
+        send_btn.disabled = True
+        chat_input.disabled = True
+        log.write(f"[{model}] ...")
 
         assistant_text = ""
         try:
@@ -73,11 +115,22 @@ class ChatScreen(Screen):
                     chunk = data.get("message", {}).get("content", "")
                     if chunk:
                         assistant_text += chunk
-                        log.write(chunk, end="")
                 except json.JSONDecodeError:
                     pass
-            log.write("")
+
             if assistant_text:
+                log.clear()
+                for msg in self._messages:
+                    role = "You" if msg["role"] == "user" else model
+                    log.write(f"[{role}] {msg['content']}")
+                log.write(f"[{model}] {assistant_text}")
                 self._messages.append({"role": "assistant", "content": assistant_text})
+            else:
+                log.write(f"[{model}] (no response)")
         except Exception as exc:
             log.write(f"\n[error] {exc}")
+            if self._messages and self._messages[-1]["role"] == "user":
+                self._messages.pop()
+        finally:
+            send_btn.disabled = False
+            chat_input.disabled = False

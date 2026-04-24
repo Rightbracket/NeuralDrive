@@ -54,6 +54,30 @@ async def delete_model(name: str) -> bool:
         return False
 
 
+async def load_model(name: str, keep_alive: str = "5m") -> bool:
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, read=300.0)) as client:
+            resp = await client.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": name, "prompt": "", "keep_alive": keep_alive},
+            )
+            return resp.status_code == 200
+    except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError):
+        return False
+
+
+async def unload_model(name: str) -> bool:
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            resp = await client.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": name, "prompt": "", "keep_alive": 0},
+            )
+            return resp.status_code == 200
+    except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPError):
+        return False
+
+
 async def chat_stream(model: str, messages: list[dict]):
     payload = {"model": model, "messages": messages, "stream": True}
     async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, read=600.0)) as client:

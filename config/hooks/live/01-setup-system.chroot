@@ -15,6 +15,12 @@ echo "neuraldrive-admin:neuraldrive" | chpasswd
 echo "neuraldrive-admin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/neuraldrive-admin
 chmod 440 /etc/sudoers.d/neuraldrive-admin
 
+# Scoped NOPASSWD rules for TUI — survives wizard _finalize() which only
+# modifies neuraldrive-admin.  File is baked in via includes.chroot; just
+# ensure correct ownership and permissions here.
+chmod 440 /etc/sudoers.d/neuraldrive-tui
+chown root:root /etc/sudoers.d/neuraldrive-tui
+
 mkdir -p /etc/neuraldrive/tls \
          /var/lib/neuraldrive/models/{manifests,blobs} \
          /var/lib/neuraldrive/ollama \

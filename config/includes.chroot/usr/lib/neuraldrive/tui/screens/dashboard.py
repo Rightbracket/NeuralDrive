@@ -20,8 +20,12 @@ class DashboardScreen(Screen):
                 yield StatsBox("CPU", [("Usage", "…")], id="box-cpu")
                 yield StatsBox("Memory", [("Used", "…"), ("Total", "…")], id="box-mem")
                 yield StatsBox("Disk", [("Used", "…"), ("Free", "…")], id="box-disk")
-                yield StatsBox("GPU", [("Vendor", "…")], id="box-gpu")
-            yield Static("Loaded Models", classes="heading")
+                yield StatsBox(
+                    "GPU",
+                    [("Device", "…"), ("VRAM", "…"), ("Temp", "…"), ("Util", "…")],
+                    id="box-gpu",
+                )
+            yield Static("Active Models (VRAM)", classes="heading")
             yield Vertical(id="loaded-models")
             yield Static("Services", classes="heading")
             yield Vertical(id="service-badges")
@@ -56,12 +60,16 @@ class DashboardScreen(Screen):
 
         gpu = hardware.get_gpu_info()
         box_gpu = self.query_one("#box-gpu", StatsBox)
-        box_gpu.update_row("Vendor", gpu["vendor"])
         if gpu["devices"]:
             dev = gpu["devices"][0]
-            box_gpu.update_row(
-                "Vendor", f"{dev['name']}  {dev['temp_c']}°C  {dev['util_percent']}%"
-            )
+            box_gpu.update_row("Device", dev["name"])
+            vram_total = dev["vram_total_mb"]
+            vram_used = dev["vram_used_mb"]
+            box_gpu.update_row("VRAM", f"{vram_used} / {vram_total} MB")
+            box_gpu.update_row("Temp", f"{dev['temp_c']}\u00b0C")
+            box_gpu.update_row("Util", f"{dev['util_percent']}%")
+        else:
+            box_gpu.update_row("Device", gpu["vendor"])
 
         container = self.query_one("#service-badges", Vertical)
         container.remove_children()

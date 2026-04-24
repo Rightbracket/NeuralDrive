@@ -104,17 +104,70 @@ Static.muted {
     width: 10;
 }
 
-.service-row {
-    layout: horizontal;
+Button.model-load {
+    background: #1F1F1F;
+    color: #10B981;
+    border: solid #10B981;
+    min-width: 10;
+    width: 10;
+    height: 3;
+}
+
+Button.model-load:hover {
+    background: #0A1F0A;
+}
+
+Button.model-unload {
+    background: #1F1F1F;
+    color: #F97316;
+    border: solid #F97316;
+    min-width: 10;
+    width: 10;
+    height: 3;
+}
+
+Button.model-unload:hover {
+    background: #1F0A0A;
+}
+
+.svc-row {
     height: 3;
     padding: 0 2;
     border: solid #2E2E2E;
-    margin: 0 0 1 0;
+    margin: 0 0 0 0;
     background: #141414;
+    content-align: left middle;
 }
 
-.service-row:hover {
+.svc-active {
+    color: #10B981;
+}
+
+.svc-inactive {
+    color: #EF4444;
+}
+
+.svc-selected {
     background: #1F1F1F;
+    border: solid #F59E0B;
+}
+
+#svc-status {
+    height: 1;
+    padding: 0 2;
+    dock: bottom;
+    offset: 0 -4;
+}
+
+#svc-actions {
+    height: auto;
+    padding: 0 1;
+    dock: bottom;
+    align: center middle;
+}
+
+#svc-actions Button {
+    margin: 0 1;
 }
 
 Button {
@@ -165,6 +218,14 @@ Select {
     color: #FFFFFF;
 }
 
+#chat-model-select {
+    width: 100%;
+    margin: 0 2;
+    border: solid #F59E0B;
+    background: #141414;
+    height: 3;
+}
+
 #wizard-container {
     align: center middle;
     padding: 2 4;
@@ -203,4 +264,117 @@ Select {
 
 .badge-offline {
     color: #EF4444;
+}
+
+#pull-progress {
+    margin: 1 0;
+    width: 1fr;
+}
+
+#pull-row {
+    height: auto;
+    layout: horizontal;
+}
+
+#cancel-pull {
+    width: 12;
+    margin: 1 0 1 1;
+}
+
+ProgressBar Bar {
+    color: #F59E0B;
+    background: #2E2E2E;
+}
+
+ProgressBar PercentageStatus {
+    color: #A1A1AA;
+}
+
+#chat-notice {
+    padding: 0 2;
+    height: auto;
+}
+
+Static.tier-heading {
+    color: #F59E0B;
+    text-style: bold;
+}
+
+Button.model-pick {
+    background: #141414;
+    color: #FFFFFF;
+    border: solid #2E2E2E;
+    width: 100%;
+    height: 3;
+    content-align: left middle;
+    text-align: left;
+}
+
+Button.model-pick:hover {
+    background: #1F1F1F;
+    border: solid #F59E0B;
+}
+
+Button.model-pick:disabled {
+    background: #0A0A0A;
+    color: #52525B;
+    border: solid #1A1A1A;
+}
+
+#catalog-scroll {
+    height: 1fr;
+    border: solid #2E2E2E;
+    scrollbar-background: #141414;
+    scrollbar-color: #2E2E2E;
+}
+
+Button.catalog-item {
+    background: #141414;
+    color: #A1A1AA;
+    border: solid #2E2E2E;
+    width: 100%;
+    height: 3;
+    content-align: left middle;
+    text-align: left;
+}
+
+Button.catalog-item:hover {
+    background: #1F1F1F;
+    border: solid #F59E0B;
+}
+
+Button.catalog-item:focus {
+    border: solid #F59E0B;
+}
+
+Button.catalog-highlighted {
+    background: #1F1F1F;
+    border: solid #F59E0B;
+}
+
+Button.catalog-highlighted.catalog-installed {
+    background: #0A0A0A;
+    border: solid #52525B;
+}
+
+Button.catalog-checked {
+    color: #10B981;
+    background: #0A1F0A;
+    border: solid #10B981;
+}
+
+Button.catalog-installed {
+    color: #52525B;
+    background: #0A0A0A;
+    border: solid #1A1A1A;
+}
+
+#catalog-buttons {
+    height: auto;
+    padding: 1 0;
+    align: center middle;
+}
+
+#catalog-buttons Button {
+    margin: 0 2;
 }

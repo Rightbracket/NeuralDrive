@@ -2,78 +2,119 @@ from __future__ import annotations
 
 import subprocess
 
+from textual import work
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Static
 
+from textual.binding import Binding
+
 from utils import hardware
 
 
-class ServiceRow(Horizontal):
-    def __init__(self, service: str, status: str) -> None:
-        super().__init__(classes="service-row")
-        self.service_name = service
-        self.service_status = status
-
-    def compose(self) -> ComposeResult:
-        short = self.service_name.replace("neuraldrive-", "")
-        cls = "ok" if self.service_status == "active" else "error"
-        yield Static(
-            f"{'●' if self.service_status == 'active' else '○'} {short}", classes=cls
-        )
-        yield Static("", classes="value")
-        yield Button("Start", id=f"start-{self.service_name}")
-        yield Button("Stop", id=f"stop-{self.service_name}")
-        yield Button("Restart", id=f"restart-{self.service_name}")
-
-
 class ServicesScreen(Screen):
-    BINDINGS = [("r", "refresh", "Refresh")]
+    BINDINGS = [
+        ("r", "refresh", "Refresh"),
+        Binding("up", "move_up", "Up", show=False),
+        Binding("down", "move_down", "Down", show=False),
+    ]
 
     def compose(self) -> ComposeResult:
         yield Header()
         with VerticalScroll():
             yield Static("NeuralDrive Services", classes="heading")
             yield Vertical(id="service-list")
-            yield Static("", id="svc-status")
+        yield Static("", id="svc-status")
+        with Horizontal(id="svc-actions"):
+            yield Button("Start", id="svc-start", variant="primary")
+            yield Button("Stop", id="svc-stop", variant="error")
+            yield Button("Restart", id="svc-restart")
         yield Footer()
 
     def on_mount(self) -> None:
-        self._load_services()
+        self._selected_index = 0
+        self._services: list[tuple[str, str]] = []
+        self.app.call_later(self._load_services)
 
-    def _load_services(self) -> None:
+    def on_screen_resume(self) -> None:
+        self.app.call_later(self._load_services)
+
+    async def _load_services(self) -> None:
         container = self.query_one("#service-list", Vertical)
-        container.remove_children()
+        await container.remove_children()
+        self._services = []
         for svc in hardware.NEURALDRIVE_SERVICES:
             status = hardware.get_service_status(svc)
-            container.mount(ServiceRow(svc, status))
+            self._services.append((svc, status))
+
+        for i, (svc, status) in enumerate(self._services):
+            short = svc.replace("neuraldrive-", "")
+            if status == "active":
+                indicator = "●"
+                cls = "svc-row svc-active"
+            else:
+                indicator = "○"
+                cls = "svc-row svc-inactive"
+            if i == self._selected_index:
+                cls += " svc-selected"
+            row = Static(
+                f"  {indicator}  {short:<20} {status}", classes=cls, id=f"svc-{i}"
+            )
+            await container.mount(row)
+
+        self._update_action_buttons()
+
+    def _update_action_buttons(self) -> None:
+        if not self._services:
+            return
+        _, status = self._services[self._selected_index]
+        self.query_one("#svc-start", Button).disabled = status == "active"
+        self.query_one("#svc-stop", Button).disabled = status != "active"
+
+    def action_move_up(self) -> None:
+        if self._selected_index > 0:
+            self._selected_index -= 1
+            self.app.call_later(self._load_services)
+
+    def action_move_down(self) -> None:
+        if self._selected_index < len(self._services) - 1:
+            self._selected_index += 1
+            self.app.call_later(self._load_services)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         btn_id = event.button.id or ""
-        for action in ("start", "stop", "restart"):
-            prefix = f"{action}-"
-            if btn_id.startswith(prefix):
-                svc = btn_id[len(prefix) :]
-                self._run_systemctl(action, svc)
-                return
+        if btn_id == "svc-start":
+            self._run_action("start")
+        elif btn_id == "svc-stop":
+            self._run_action("stop")
+        elif btn_id == "svc-restart":
+            self._run_action("restart")
 
-    def _run_systemctl(self, action: str, service: str) -> None:
+    @work(exclusive=True)
+    async def _run_action(self, action: str) -> None:
+        if not self._services:
+            return
+        svc, _ = self._services[self._selected_index]
+        short = svc.replace("neuraldrive-", "")
         status_widget = self.query_one("#svc-status", Static)
+        status_widget.update(f"  {action.title()}ing {short}...")
+
         try:
             res = subprocess.run(
-                ["systemctl", action, service],
+                ["sudo", "systemctl", action, svc],
                 capture_output=True,
                 text=True,
                 timeout=15,
             )
             if res.returncode == 0:
-                status_widget.update(f"✓ {action} {service}")
+                status_widget.update(f"  ✓ {short} {action}ed")
             else:
-                status_widget.update(f"✗ {action} {service}: {res.stderr.strip()}")
+                status_widget.update(f"  ✗ {short}: {res.stderr.strip()}")
         except subprocess.TimeoutExpired:
-            status_widget.update(f"✗ {action} {service}: timeout")
-        self._load_services()
+            status_widget.update(f"  ✗ {short}: timeout")
+
+        self.app.call_later(self._load_services)
 
     def action_refresh(self) -> None:
-        self._load_services()
+        self.app.call_later(self._load_services)

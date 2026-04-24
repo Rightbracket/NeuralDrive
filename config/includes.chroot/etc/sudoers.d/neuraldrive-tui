@@ -1,0 +1,30 @@
+# Scoped NOPASSWD rules for NeuralDrive TUI operations.
+# This file is NOT modified by the first-boot wizard's _finalize()
+# (which only touches /etc/sudoers.d/neuraldrive-admin).
+# Processed AFTER neuraldrive-admin (alphabetical), so these NOPASSWD
+# rules override the password-required ALL rule for matched commands.
+
+# Service management
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/systemctl start neuraldrive-*
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/systemctl stop neuraldrive-*
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart neuraldrive-*
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/systemctl is-active neuraldrive-*
+
+# Partition creation and storage management
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/sbin/parted *
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/sbin/mkfs.ext4 *
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/mount *
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/umount *
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/sbin/partprobe *
+
+# File operations (wizard config writing, directory setup)
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/tee *
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/mkdir *
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/chmod *
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/chown *
+
+# Password management (wizard security step)
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/sbin/chpasswd
+
+# Sudoers self-read (wizard _finalize reads neuraldrive-admin to strip NOPASSWD)
+neuraldrive-admin ALL=(ALL) NOPASSWD: /usr/bin/cat /etc/sudoers.d/neuraldrive-admin

@@ -147,3 +147,95 @@ NEURALDRIVE_SERVICES = [
     "neuraldrive-gpu-monitor",
     "neuraldrive-system-api",
 ]
+
+
+def get_boot_device() -> str | None:
+    try:
+        with open("/proc/cmdline") as f:
+            cmdline = f.read()
+        for part in cmdline.split():
+            if part.startswith("boot=live") or part.startswith("root="):
+                pass
+            if part.startswith("live-media="):
+                return part.split("=", 1)[1]
+        res = subprocess.run(
+            ["findmnt", "-n", "-o", "SOURCE", "/run/live/medium"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            part_dev = res.stdout.strip()
+            import re
+
+            match = re.match(r"(/dev/[a-z]+)", part_dev)
+            if match:
+                return match.group(1)
+    except (OSError, subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+    return None
+
+
+def get_disk_partitions(device: str) -> list[dict]:
+    try:
+        res = subprocess.run(
+            ["lsblk", "-J", "-b", "-o", "NAME,SIZE,FSTYPE,LABEL,MOUNTPOINT", device],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if res.returncode != 0:
+            return []
+        import json
+
+        data = json.loads(res.stdout)
+        partitions = []
+        for bd in data.get("blockdevices", []):
+            for child in bd.get("children", []):
+                partitions.append(
+                    {
+                        "name": child.get("name", ""),
+                        "size_bytes": int(child.get("size", 0)),
+                        "fstype": child.get("fstype", ""),
+                        "label": child.get("label", ""),
+                        "mountpoint": child.get("mountpoint", ""),
+                    }
+                )
+            if not bd.get("children"):
+                partitions.append(
+                    {
+                        "name": bd.get("name", ""),
+                        "size_bytes": int(bd.get("size", 0)),
+                        "fstype": bd.get("fstype", ""),
+                        "label": bd.get("label", ""),
+                        "mountpoint": bd.get("mountpoint", ""),
+                    }
+                )
+        return partitions
+    except (subprocess.TimeoutExpired, FileNotFoundError, ValueError):
+        return []
+
+
+def get_device_size(device: str) -> int:
+    try:
+        res = subprocess.run(
+            ["lsblk", "-b", "-d", "-n", "-o", "SIZE", device],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if res.returncode == 0:
+            return int(res.stdout.strip())
+    except (subprocess.TimeoutExpired, FileNotFoundError, ValueError):
+        pass
+    return 0
+
+
+def get_unpartitioned_space(device: str) -> int:
+    total = get_device_size(device)
+    if not total:
+        return 0
+    parts = get_disk_partitions(device)
+    used = sum(p["size_bytes"] for p in parts)
+    free = total - used
+    return max(0, free)
