@@ -72,7 +72,7 @@ Static.muted {
 
 .model-item {
     layout: horizontal;
-    height: 3;
+    height: 5;
     padding: 0 2;
     border: solid #2E2E2E;
     margin: 0 0 1 0;
@@ -83,14 +83,34 @@ Static.muted {
     background: #1F1F1F;
 }
 
+.model-item Static {
+    height: 100%;
+    content-align: left middle;
+}
+
 .model-item Static.model-name {
     color: #FFFFFF;
     text-style: bold;
     width: 1fr;
 }
 
-.model-item Static.model-size {
+.model-item Static.model-params {
     color: #A1A1AA;
+    width: 8;
+}
+
+.model-item Static.model-quant {
+    color: #71717A;
+    width: 10;
+}
+
+.model-item Static.model-disk {
+    color: #A1A1AA;
+    width: 10;
+}
+
+.model-item Static.model-vram {
+    color: #F59E0B;
     width: 12;
 }
 
@@ -128,6 +148,18 @@ Button.model-unload {
 
 Button.model-unload:hover {
     background: #1F0A0A;
+}
+
+Button.model-load:disabled {
+    background: #0A0A0A;
+    color: #52525B;
+    border: solid #1A1A1A;
+}
+
+Button.model-unload:disabled {
+    background: #0A0A0A;
+    color: #52525B;
+    border: solid #1A1A1A;
 }
 
 .svc-row {

@@ -11,7 +11,7 @@ from textual.widgets import Button, Footer, Header, Input, ProgressBar, Static
 
 from textual.binding import Binding
 
-from utils import api_client
+from utils import api_client, config
 from widgets.model_item import ModelItem
 
 CURATED_MODELS = [
@@ -270,7 +270,19 @@ class ModelsScreen(Screen):
     async def _load_models(self) -> None:
         all_models = await api_client.list_models()
         running = await api_client.list_running_models()
-        running_names = {m.get("name", "") for m in running}
+        running_map = {m.get("name", ""): m for m in running}
+
+        vram_cache = config.get("vram_cache", {})
+        if not isinstance(vram_cache, dict):
+            vram_cache = {}
+        cache_changed = False
+        for name, info in running_map.items():
+            vram_bytes = info.get("size_vram", 0)
+            if vram_bytes and vram_cache.get(name) != vram_bytes:
+                vram_cache[name] = vram_bytes
+                cache_changed = True
+        if cache_changed:
+            config.set_key("vram_cache", vram_cache)
 
         container = self.query_one("#model-list", Vertical)
         container.remove_children()
@@ -282,8 +294,23 @@ class ModelsScreen(Screen):
                 name = m.get("name", "unknown")
                 size_bytes = m.get("size", 0)
                 size_str = f"{size_bytes / (1024**3):.1f} GB" if size_bytes else "—"
-                loaded = name in running_names
-                container.mount(ModelItem(name, size_str, loaded))
+                details = m.get("details", {})
+                params = details.get("parameter_size", "")
+                quant = details.get("quantization_level", "")
+                loaded = name in running_map
+
+                if name in running_map:
+                    vb = running_map[name].get("size_vram", 0)
+                    vram_str = f"{vb / (1024**3):.1f} GB" if vb else "—"
+                elif name in vram_cache:
+                    vb = vram_cache[name]
+                    vram_str = f"~{vb / (1024**3):.1f} GB" if vb else "—"
+                else:
+                    vram_str = "—"
+
+                container.mount(
+                    ModelItem(name, size_str, params, quant, vram_str, loaded)
+                )
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         btn = event.button
