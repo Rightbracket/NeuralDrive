@@ -425,6 +425,7 @@ class FirstBootWizard(Screen):
                 "/mnt/persistence/var/lib/neuraldrive/ollama/.ollama",
                 "/mnt/persistence/var/lib/neuraldrive/models",
                 "/mnt/persistence/var/lib/neuraldrive/config",
+                "/mnt/persistence/var/lib/neuraldrive/webui",
                 "/mnt/persistence/var/log/neuraldrive",
                 "/mnt/persistence/etc/neuraldrive",
                 "/mnt/persistence/home",
@@ -452,6 +453,21 @@ class FirstBootWizard(Screen):
             )
             if proc.returncode != 0:
                 return f"chown failed: {proc.stderr.strip()}"
+
+            proc = subprocess.run(
+                [
+                    "sudo",
+                    "chown",
+                    "-R",
+                    "neuraldrive-webui:neuraldrive-webui",
+                    "/mnt/persistence/var/lib/neuraldrive/webui",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if proc.returncode != 0:
+                return f"chown webui failed: {proc.stderr.strip()}"
 
             proc = subprocess.run(
                 ["sudo", "umount", "/mnt/persistence"],
