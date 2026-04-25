@@ -11,10 +11,10 @@
 </p>
 
 <p align="center">
-  <a href="docs/user-guide/src/SUMMARY.md">User Guide</a> &middot;
-  <a href="docs/dev-guide/src/SUMMARY.md">Developer Guide</a> &middot;
-  <a href="docs/user-guide/src/getting-started/quick-start.md">Quick Start</a> &middot;
-  <a href="docs/user-guide/src/api/coding-agents.md">Connect a Coding Agent</a>
+  <a href="https://rightbracket.github.io/NeuralDrive/user-guide/">User Guide</a> &middot;
+  <a href="https://rightbracket.github.io/NeuralDrive/dev-guide/">Developer Guide</a> &middot;
+  <a href="https://rightbracket.github.io/NeuralDrive/user-guide/getting-started/quick-start.html">Quick Start</a> &middot;
+  <a href="https://rightbracket.github.io/NeuralDrive/user-guide/api/coding-agents.html">Connect a Coding Agent</a>
 </p>
 
 ---
@@ -97,7 +97,7 @@ sudo dd if=neuraldrive.iso of=/dev/rdiskN bs=4m status=progress
 # Windows / any platform: use Balena Etcher (https://etcher.balena.io/)
 ```
 
-See the [Writing the USB Drive](docs/user-guide/src/getting-started/writing-usb.md) guide for full platform-specific instructions and persistence partition setup.
+See the [Writing the USB Drive](https://rightbracket.github.io/NeuralDrive/user-guide/getting-started/writing-usb.html) guide for full platform-specific instructions and persistence partition setup.
 
 ```bash
 # 2. Boot the target machine from USB
@@ -199,7 +199,7 @@ NeuralDrive/
 
 ## Documentation
 
-The full documentation is organized into two mdbook volumes:
+The full documentation is organized into two mdbook volumes, each with its own navigation and search and published to GitHub Pages:
 
 **[User Guide](docs/user-guide/src/SUMMARY.md)** — Getting started, model management, API integration, administration, advanced configuration, troubleshooting, and reference material. Written for three audiences: home lab hobbyists, developers connecting coding agents, and IT administrators.
 
