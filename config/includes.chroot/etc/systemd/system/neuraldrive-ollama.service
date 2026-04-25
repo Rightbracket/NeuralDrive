@@ -7,7 +7,7 @@ Requires=neuraldrive-gpu-detect.service
 Environment=HOME=/var/lib/neuraldrive/ollama
 EnvironmentFile=/etc/neuraldrive/ollama.conf
 EnvironmentFile=-/var/lib/neuraldrive/config/ollama.conf
-ExecStartPre=/usr/bin/mkdir -p /var/lib/neuraldrive/models
+ExecStartPre=+/bin/bash -c 'mkdir -p /var/lib/neuraldrive/{models,ollama,config,logs} && chown neuraldrive-ollama:neuraldrive-ollama /var/lib/neuraldrive/{models,ollama,config,logs}'
 ExecStartPre=-/sbin/modprobe nvidia-current-uvm
 ExecStartPre=-/usr/bin/nvidia-modprobe -u
 ExecStart=/usr/local/bin/ollama serve
