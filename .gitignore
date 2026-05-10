@@ -1,4 +1,6 @@
 output/
+docker/dev-secrets/
+docker/.env
 *.iso
 model-staging/
 __pycache__/

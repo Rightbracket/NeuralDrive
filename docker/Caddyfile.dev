@@ -1,0 +1,41 @@
+{
+    admin off
+    auto_https disable_redirects
+}
+
+:443 {
+    tls /etc/neuraldrive/tls/server.crt /etc/neuraldrive/tls/server.key
+
+    handle /* {
+        reverse_proxy webui:8080
+    }
+}
+
+:8443 {
+    tls /etc/neuraldrive/tls/server.crt /etc/neuraldrive/tls/server.key
+
+    @api_routes {
+        path /v1/* /api/*
+    }
+    @api_authenticated {
+        path /v1/* /api/*
+        header Authorization "Bearer {env.NEURALDRIVE_API_KEY}"
+    }
+
+    handle @api_authenticated {
+        reverse_proxy ollama:11434
+    }
+
+    handle @api_routes {
+        respond "Unauthorized — provide Authorization: Bearer <API_KEY>" 401
+    }
+
+    handle /system/* {
+        uri strip_prefix /system
+        reverse_proxy system-api:3001
+    }
+
+    handle /health {
+        respond "OK" 200
+    }
+}
