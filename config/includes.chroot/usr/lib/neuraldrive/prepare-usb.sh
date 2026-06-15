@@ -27,8 +27,25 @@ cat <<'EOF' | sudo tee /mnt/persistence.conf
 /var/log/neuraldrive  union
 /home                 union
 EOF
-sudo mkdir -p /mnt/neuraldrive/{models,config,logs,home}
-sudo mkdir -p /mnt/neuraldrive/models/{manifests,blobs}
+
+# Pre-seed the rw/ + work/ upperdir structure for each `union` entry above.
+# live-boot mounts each union entry as overlayfs(upperdir=<partition>/<entry>/rw,
+# workdir=<partition>/<entry>/work). Files created at the partition root
+# (e.g., /mnt/models) would be invisible inside the overlay — only files under
+# the rw/ subtree of the matching entry will appear in the live filesystem.
+sudo mkdir -p \
+    /mnt/var/lib/neuraldrive/rw/models/manifests \
+    /mnt/var/lib/neuraldrive/rw/models/blobs \
+    /mnt/var/lib/neuraldrive/rw/ollama/.ollama \
+    /mnt/var/lib/neuraldrive/rw/config \
+    /mnt/var/lib/neuraldrive/rw/webui \
+    /mnt/var/lib/neuraldrive/work \
+    /mnt/var/log/neuraldrive/rw \
+    /mnt/var/log/neuraldrive/work \
+    /mnt/etc/neuraldrive/rw \
+    /mnt/etc/neuraldrive/work \
+    /mnt/home/rw \
+    /mnt/home/work
 sudo umount /mnt
 
 echo "Persistence partition created and configured on $PART_DEV"

@@ -68,14 +68,22 @@ sudo dd if=neuraldrive.iso of=/dev/sdX bs=4M conv=fsync status=progress
 sudo parted /dev/sdX -- mkpart primary ext4 -1 100%
 sudo mkfs.ext4 -L persistence /dev/sdXN   # where N is the new partition number
 sudo mount /dev/sdXN /mnt
-sudo mkdir -p /mnt/neuraldrive/{models,config,logs,home}
-sudo mkdir -p /mnt/neuraldrive/models/{manifests,blobs}
 cat <<'EOF' | sudo tee /mnt/persistence.conf
 /var/lib/neuraldrive  union
 /etc/neuraldrive      union
 /var/log/neuraldrive  union
 /home                 union
 EOF
+# IMPORTANT: each `union` entry above becomes an overlayfs(upperdir=<entry>/rw,
+# workdir=<entry>/work) on boot. Files outside the rw/ subtree are invisible
+# inside the overlay — so pre-seeded directories MUST live under rw/.
+sudo mkdir -p \
+    /mnt/var/lib/neuraldrive/rw/models/{manifests,blobs} \
+    /mnt/var/lib/neuraldrive/rw/{ollama/.ollama,config,webui} \
+    /mnt/var/lib/neuraldrive/work \
+    /mnt/var/log/neuraldrive/{rw,work} \
+    /mnt/etc/neuraldrive/{rw,work} \
+    /mnt/home/{rw,work}
 sudo umount /mnt
 ```
 
@@ -91,6 +99,24 @@ NeuralDrive uses the `live-boot` persistence mechanism.
 - **Partition Label**: Must be `persistence` (exact, lowercase) for live-boot auto-detection.
 - **Persistence Configuration**: `persistence.conf` placed at the **root of the persistence partition filesystem** (not in `/etc/`).
 - **Boot Parameter**: The GRUB kernel command line must include `persistence` (see 01-base-system.md §4).
+
+### Overlay layout (critical)
+
+Each `union` entry in `persistence.conf` causes live-boot to mount that path as
+an overlayfs at boot, using `<partition>/<entry-path>/rw` as the upperdir and
+`<partition>/<entry-path>/work` as the workdir. Anything pre-seeded **must** go
+inside the matching `rw/` subtree — files placed at the partition root (e.g.,
+`/mnt/persistence/models/`) are outside the overlay and silently invisible
+inside the running system after boot.
+
+The first-boot wizard and `prepare-usb.sh` both pre-create this layout. They
+also avoid direct-mounting the partition at `/var/lib/neuraldrive` during the
+boot in which they create it, because the `union` mounts only activate on the
+*next* boot via live-boot's initrd. Direct-mounting during creation would let
+ollama/webui write to the partition root, orphaning the data once the overlay
+activates. The wizard forces a reboot at the end of its run when persistence is
+freshly created, after mirroring its own writes (sentinel, API key, credentials,
+config.yaml) into the matching `rw/` upperdirs so they survive the reboot.
 
 ### Content of `persistence.conf`
 This file is placed on the root of the persistence partition (e.g., after mounting the partition at `/mnt`, the file would be `/mnt/persistence.conf`):

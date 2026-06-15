@@ -17,8 +17,17 @@ API_KEY_PATH = "/etc/neuraldrive/api.key"
 PERSISTENT_CREDENTIALS_PATH = "/var/lib/neuraldrive/config/credentials.conf"
 PERSISTENT_API_KEY_PATH = "/var/lib/neuraldrive/config/api.key"
 SUDOERS_PATH = "/etc/sudoers.d/neuraldrive-admin"
-PERSISTENCE_MOUNT = "/var/lib/neuraldrive"
-PERSISTENCE_CONF_CONTENT = "/var/lib/neuraldrive union\n/etc/neuraldrive union\n/var/log/neuraldrive union\n/home union\n"
+# persistence.conf lists directories that live-boot mounts as overlayfs on
+# subsequent boots, with `<partition>/<entry-path>/rw` as the upperdir and
+# `…/work` as the workdir. Anything we pre-seed MUST go inside the matching
+# `rw/` subtree — files at the partition root are invisible to the overlay.
+PERSISTENCE_UNION_ENTRIES = (
+    "/var/lib/neuraldrive",
+    "/etc/neuraldrive",
+    "/var/log/neuraldrive",
+    "/home",
+)
+PERSISTENCE_CONF_CONTENT = "".join(f"{p} union\n" for p in PERSISTENCE_UNION_ENTRIES)
 
 
 class FirstBootWizard(Screen):
@@ -36,6 +45,11 @@ class FirstBootWizard(Screen):
         self._boot_device: str | None = None
         self._unpartitioned_bytes = 0
         self._has_persistence = False
+        # True after _create_persistence_partition seeds a fresh partition this
+        # session — in that case we must reboot before the user does anything
+        # else, because writes are still landing in the ephemeral overlay (the
+        # union mounts only activate on the next boot).
+        self._fresh_persistence = False
         self._awaiting_confirm = False
 
     def compose(self) -> ComposeResult:
@@ -259,8 +273,10 @@ class FirstBootWizard(Screen):
             self.query_one("#wiz-next", Button).label = "Next →"
         else:
             body.update(
-                "✓ Persistence partition created and mounted.\n\n"
-                "Models, config, and logs will now survive reboots."
+                "✓ Persistence partition created.\n\n"
+                "Models, config, and logs will survive reboots.\n"
+                "A reboot is required at the end of the wizard to\n"
+                "activate the partition's overlay filesystem."
             )
             self.query_one("#wiz-next", Button).label = "Next →"
 
@@ -421,14 +437,24 @@ class FirstBootWizard(Screen):
             if proc.returncode != 0:
                 return "Failed to write persistence.conf"
 
+            # Pre-seed the directory structure INSIDE each union entry's rw/
+            # upperdir (and a matching work/ for overlayfs), so the files are
+            # visible once live-boot activates the overlays on next boot. We
+            # intentionally do NOT mkdir at the partition root (e.g.,
+            # /mnt/persistence/models) — that path is outside the overlay and
+            # any writes there would be orphaned/invisible after reboot.
             for d in [
-                "/mnt/persistence/var/lib/neuraldrive/ollama/.ollama",
-                "/mnt/persistence/var/lib/neuraldrive/models",
-                "/mnt/persistence/var/lib/neuraldrive/config",
-                "/mnt/persistence/var/lib/neuraldrive/webui",
-                "/mnt/persistence/var/log/neuraldrive",
-                "/mnt/persistence/etc/neuraldrive",
-                "/mnt/persistence/home",
+                "/mnt/persistence/var/lib/neuraldrive/rw/ollama/.ollama",
+                "/mnt/persistence/var/lib/neuraldrive/rw/models",
+                "/mnt/persistence/var/lib/neuraldrive/rw/config",
+                "/mnt/persistence/var/lib/neuraldrive/rw/webui",
+                "/mnt/persistence/var/lib/neuraldrive/work",
+                "/mnt/persistence/var/log/neuraldrive/rw",
+                "/mnt/persistence/var/log/neuraldrive/work",
+                "/mnt/persistence/etc/neuraldrive/rw",
+                "/mnt/persistence/etc/neuraldrive/work",
+                "/mnt/persistence/home/rw",
+                "/mnt/persistence/home/work",
             ]:
                 proc = subprocess.run(
                     ["sudo", "mkdir", "-p", d],
@@ -445,7 +471,9 @@ class FirstBootWizard(Screen):
                     "chown",
                     "-R",
                     "neuraldrive-ollama:neuraldrive-ollama",
-                    "/mnt/persistence/var/lib/neuraldrive/ollama",
+                    "/mnt/persistence/var/lib/neuraldrive/rw/ollama",
+                    "/mnt/persistence/var/lib/neuraldrive/rw/models",
+                    "/mnt/persistence/var/lib/neuraldrive/rw/config",
                 ],
                 capture_output=True,
                 text=True,
@@ -460,7 +488,7 @@ class FirstBootWizard(Screen):
                     "chown",
                     "-R",
                     "neuraldrive-webui:neuraldrive-webui",
-                    "/mnt/persistence/var/lib/neuraldrive/webui",
+                    "/mnt/persistence/var/lib/neuraldrive/rw/webui",
                 ],
                 capture_output=True,
                 text=True,
@@ -478,35 +506,15 @@ class FirstBootWizard(Screen):
             if proc.returncode != 0:
                 return f"umount /mnt/persistence failed: {proc.stderr.strip()}"
 
-            proc = subprocess.run(
-                ["sudo", "mkdir", "-p", PERSISTENCE_MOUNT],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if proc.returncode != 0:
-                return f"mkdir {PERSISTENCE_MOUNT} failed: {proc.stderr.strip()}"
-            proc = subprocess.run(
-                ["sudo", "mount", new_part, PERSISTENCE_MOUNT],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if proc.returncode != 0:
-                return f"Mount at {PERSISTENCE_MOUNT} failed: {proc.stderr.strip()}"
-
-            proc = subprocess.run(
-                ["sudo", "systemctl", "restart", "neuraldrive-ollama"],
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-            if proc.returncode != 0:
-                self.query_one("#wiz-error", Static).update(
-                    f"Warning: Ollama restart failed: {proc.stderr.strip()}"
-                )
-
+            # We intentionally do NOT direct-mount the partition at
+            # /var/lib/neuraldrive here. The `union` entries in persistence.conf
+            # only activate on the next boot (via live-boot's initrd). Mounting
+            # the partition directly now would land ollama writes at the
+            # partition root, which would be invisible once the overlay
+            # activates on reboot — exactly the bug this rewrite fixes.
+            # The wizard's _finalize() will force a reboot before exit.
             self._has_persistence = True
+            self._fresh_persistence = True
             return None
 
         except subprocess.TimeoutExpired:
@@ -573,6 +581,67 @@ class FirstBootWizard(Screen):
         except (subprocess.TimeoutExpired, FileNotFoundError) as e:
             return f"Failed to write {path}: {e}"
 
+    def _persistence_root(self) -> str | None:
+        """Return live-boot's mountpoint for the persistence partition, or None.
+
+        live-boot mounts the persistence partition at /run/live/persistence/<dev>/
+        on boot. We use this path to pre-seed files into the union overlays'
+        rw/ upperdirs when persistence was just created in this session — those
+        writes need to survive into the next boot when the overlays activate.
+        """
+        try:
+            with open("/proc/mounts") as f:
+                for line in f:
+                    parts = line.split()
+                    if len(parts) < 2:
+                        continue
+                    mp = parts[1]
+                    if mp.startswith("/run/live/persistence/"):
+                        return mp
+        except OSError:
+            pass
+        return None
+
+    def _mirror_to_persistence_upper(self, path: str) -> str | None:
+        """Copy a file from the live filesystem into the matching union upperdir.
+
+        Required after _fresh_persistence: on this boot, writes to (e.g.)
+        /etc/neuraldrive/first-boot-complete land in the ephemeral tmpfs
+        overlay. On the next boot, live-boot activates the union overlay using
+        <partition>/etc/neuraldrive/rw/ as the upper — which is empty. Without
+        mirroring, every wizard-written file (sentinel, api key, credentials,
+        config.yaml, password hash side-effects) would be lost on reboot.
+
+        Returns None on success, error message on failure.
+        """
+        root = self._persistence_root()
+        if not root:
+            return "Persistence partition mountpoint not found in /proc/mounts"
+
+        for entry in PERSISTENCE_UNION_ENTRIES:
+            if path == entry or path.startswith(entry + "/"):
+                rel = path[len(entry) :].lstrip("/")
+                dest = os.path.join(root, entry.lstrip("/"), "rw", rel)
+                proc = subprocess.run(
+                    ["sudo", "mkdir", "-p", os.path.dirname(dest)],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if proc.returncode != 0:
+                    return f"mkdir {os.path.dirname(dest)} failed: {proc.stderr.strip()}"
+                proc = subprocess.run(
+                    ["sudo", "cp", "-a", path, dest],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if proc.returncode != 0:
+                    return f"cp {path} -> {dest} failed: {proc.stderr.strip()}"
+                return None
+        # Path isn't under any union entry — nothing to mirror.
+        return None
+
     def _finalize(self) -> None:
         errors: list[str] = []
 
@@ -638,6 +707,34 @@ class FirstBootWizard(Screen):
             error_widget.update(f"Failed to write sentinel: {err}")
             return
 
+        # If persistence was just created this session, mirror all
+        # wizard-written state into the persistence partition's union upperdirs
+        # NOW, before the user reboots. On this boot those files live in the
+        # ephemeral tmpfs overlay; on next boot live-boot activates the union
+        # overlays using <partition>/<entry>/rw/ as the upper — empty unless we
+        # populate it here. See _mirror_to_persistence_upper docstring.
+        if self._fresh_persistence:
+            mirror_paths = [
+                SENTINEL,
+                API_KEY_PATH,
+                CREDENTIALS_PATH,
+                "/etc/neuraldrive/config.yaml",
+                PERSISTENT_API_KEY_PATH,
+                PERSISTENT_CREDENTIALS_PATH,
+                "/var/lib/neuraldrive/config/config.yaml",
+            ]
+            for p in mirror_paths:
+                if not os.path.exists(p):
+                    continue
+                mirr_err = self._mirror_to_persistence_upper(p)
+                if mirr_err:
+                    error_widget = self.query_one("#wiz-error", Static)
+                    error_widget.update(
+                        f"Persistence mirror failed: {mirr_err}\n"
+                        "Do NOT reboot — your settings would be lost."
+                    )
+                    return
+
         # Remove NOPASSWD LAST — after all other sudo operations are done,
         # since removing it makes subsequent sudo calls require a TTY password prompt
         if self._admin_password:
@@ -655,10 +752,63 @@ class FirstBootWizard(Screen):
                         # Sudoers strip failed but sentinel+config are written —
                         # wizard is complete, just warn
                         pass
+                    elif self._fresh_persistence:
+                        # Mirror the updated sudoers too.
+                        self._mirror_to_persistence_upper(SUDOERS_PATH)
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 pass
 
         self.app.pop_screen()
 
+        # If persistence was created this session, the union overlays aren't
+        # active yet — they only activate on the next boot. Force a reboot now
+        # so the user lands in a coherent state where the partition actually
+        # holds their data. Skipping this step is what caused the original
+        # data-loss bug (writes during this boot landed in the tmpfs overlay).
+        if self._fresh_persistence:
+            self.app.push_screen(_RebootPromptScreen())
+
     def action_cancel_wizard(self) -> None:
+        # Forbid skipping when persistence was just created — the user MUST
+        # reboot before doing anything else, or the partition's overlays won't
+        # activate and data will be lost.
+        if self._fresh_persistence:
+            return
         self.app.pop_screen()
+
+
+class _RebootPromptScreen(Screen):
+    """Forced reboot prompt shown after creating a fresh persistence partition.
+
+    Cannot be dismissed: skipping here would leave the user in a half-state
+    where writes go to the ephemeral overlay and the persistence partition's
+    overlays are dormant. Until live-boot activates the overlays on next boot,
+    nothing the user does will persist.
+    """
+
+    BINDINGS = []
+
+    def compose(self) -> ComposeResult:
+        with Center(id="wizard-container"):
+            with Vertical(id="wizard-box"):
+                yield Static("Reboot Required", id="wiz-title")
+                yield Static(
+                    "Persistence partition created.\n\n"
+                    "A reboot is required to activate it. Until then, any data\n"
+                    "written to /var/lib/neuraldrive lives in temporary memory\n"
+                    "and will be lost.\n\n"
+                    "Press Enter to reboot now.",
+                    id="wiz-body",
+                )
+                yield Static("", id="wiz-error")
+                yield Button("Reboot Now", id="reboot-now", classes="primary")
+
+    def on_mount(self) -> None:
+        self.query_one("#reboot-now", Button).focus()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "reboot-now":
+            try:
+                subprocess.Popen(["sudo", "systemctl", "reboot"])
+            except (FileNotFoundError, OSError) as e:
+                self.query_one("#wiz-error", Static).update(f"Reboot failed: {e}")
