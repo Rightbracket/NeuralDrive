@@ -28,6 +28,10 @@ GPU_CONF = "/run/neuraldrive/gpu.conf"
 MODELS_DIR = "/var/lib/neuraldrive/models"
 DATA_DIR = "/var/lib/neuraldrive"
 
+# When running inside Docker (NEURALDRIVE_CONTAINER=1) there is no systemd,
+# journalctl, or hostnamectl. Operations that require them return stub responses.
+CONTAINER_MODE = os.environ.get("NEURALDRIVE_CONTAINER") == "1"
+
 ALLOWED_SERVICES = [
     "neuraldrive-ollama",
     "neuraldrive-webui",
@@ -98,6 +102,8 @@ def get_system_status():
 
 @app.get("/system/services", dependencies=[Depends(verify_token)])
 def list_services():
+    if CONTAINER_MODE:
+        return {"services": [{"name": s, "status": "container", "since": ""} for s in ALLOWED_SERVICES]}
     results = []
     for svc in ALLOWED_SERVICES:
         status = _systemctl("is-active", svc)
@@ -119,6 +125,8 @@ def restart_service(name: str):
         raise HTTPException(
             status_code=403, detail=f"Service '{name}' not in allowlist"
         )
+    if CONTAINER_MODE:
+        return {"message": f"Restarted {name} (container mode: use docker compose restart)"}
     subprocess.run(["systemctl", "restart", name], check=True)
     return {"message": f"Restarted {name}"}
 
@@ -131,6 +139,8 @@ def service_action(name: str, action: str):
         )
     if action not in ("start", "stop"):
         raise HTTPException(status_code=400, detail="Action must be 'start' or 'stop'")
+    if CONTAINER_MODE:
+        return {"message": f"{action.capitalize()}ed {name} (container mode: use docker compose {action})"}
     subprocess.run(["systemctl", action, name], check=True)
     return {"message": f"{action.capitalize()}ed {name}"}
 
@@ -141,6 +151,8 @@ def get_logs(service: str = "ollama", lines: int = 50, level: str = ""):
         service = f"neuraldrive-{service}"
     if service not in ALLOWED_SERVICES:
         raise HTTPException(status_code=403, detail="Service not in allowlist")
+    if CONTAINER_MODE:
+        return {"service": service, "lines": ["(container mode: use `docker compose logs` to view service logs)"]}
     capped_lines = min(lines, 500)
     cmd = ["journalctl", "-u", service, "-n", str(capped_lines), "--no-pager"]
     if level:
@@ -184,6 +196,8 @@ def get_network():
 def set_hostname(hostname: str):
     if not hostname or len(hostname) > 63:
         raise HTTPException(status_code=400, detail="Hostname must be 1-63 characters")
+    if CONTAINER_MODE:
+        return {"message": f"Hostname set to {hostname} (container mode: not persisted)"}
     subprocess.run(["hostnamectl", "set-hostname", hostname], check=True)
     return {"message": f"Hostname set to {hostname}"}
 
@@ -229,6 +243,8 @@ def manage_ssh(action: str):
         raise HTTPException(
             status_code=400, detail="Action must be 'enable' or 'disable'"
         )
+    if CONTAINER_MODE:
+        return {"message": f"SSH {action}d (container mode: not applicable)"}
     cmd = "start" if action == "enable" else "stop"
     subprocess.run(["systemctl", cmd, "ssh"], check=True)
     if action == "enable":
@@ -240,7 +256,7 @@ def manage_ssh(action: str):
 
 @app.get("/system/security", dependencies=[Depends(verify_token)])
 def get_security():
-    ssh_active = _systemctl("is-active", "ssh") == "active"
+    ssh_active = False if CONTAINER_MODE else _systemctl("is-active", "ssh") == "active"
     cert_exists = os.path.exists(f"{CERT_DIR}/server.crt")
     cert_expiry = ""
     if cert_exists:
@@ -276,7 +292,8 @@ def rotate_api_key():
     Path(API_KEY_PATH).write_text(new_key)
     caddy_env_path = Path("/etc/neuraldrive/caddy.env")
     caddy_env_path.write_text(f"NEURALDRIVE_API_KEY={new_key}\n")
-    subprocess.run(["systemctl", "reload", "neuraldrive-caddy"], check=False)
+    if not CONTAINER_MODE:
+        subprocess.run(["systemctl", "reload", "neuraldrive-caddy"], check=False)
     return {"message": "API key rotated", "new_key": new_key}
 
 

@@ -1,0 +1,81 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - neuraldrive
+
+  ollama-gpu:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - neuraldrive
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles:
+      - gpu
+
+  webui:
+    image: ghcr.io/open-webui/open-webui:main
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_NAME=NeuralDrive
+      - ENABLE_SIGNUP=false
+      - DEFAULT_USER_ROLE=user
+      - WEBUI_AUTH=true
+      - ENABLE_EASTER_EGGS=false
+    volumes:
+      - webui_data:/app/backend/data
+    depends_on:
+      - ollama
+    networks:
+      - neuraldrive
+
+  system-api:
+    build:
+      context: .
+      dockerfile: docker/system-api/Dockerfile
+    environment:
+      - NEURALDRIVE_CONTAINER=1
+    env_file:
+      - docker/.env
+    volumes:
+      - ./docker/dev-secrets/api.key:/etc/neuraldrive/api.key:ro
+      - ./docker/dev-secrets/gpu.conf:/run/neuraldrive/gpu.conf:ro
+      - ./docker/dev-secrets/tls:/etc/neuraldrive/tls:ro
+    networks:
+      - neuraldrive
+
+  caddy:
+    image: caddy:latest
+    environment:
+      - NEURALDRIVE_API_KEY=${NEURALDRIVE_API_KEY}
+    volumes:
+      - ./docker/Caddyfile.dev:/etc/caddy/Caddyfile:ro
+      - ./docker/dev-secrets/tls:/etc/neuraldrive/tls:ro
+      - caddy_data:/data
+    ports:
+      - "443:443"
+      - "8443:8443"
+      - "11434:11434"
+    depends_on:
+      - ollama
+      - webui
+      - system-api
+    networks:
+      - neuraldrive
+
+networks:
+  neuraldrive:
+
+volumes:
+  ollama_data:
+  webui_data:
+  caddy_data:
