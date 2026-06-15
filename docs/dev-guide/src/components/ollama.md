@@ -8,6 +8,10 @@ Ollama serves as the core inference engine for NeuralDrive. It is managed as a s
 
 The Ollama binary is installed to `/usr/local/bin/ollama` during the build process via the `03-install-extras` hook. We use the official static binary to ensure compatibility across different Debian versions.
 
+### CUDA driver requirement
+
+Current Ollama releases (0.30.x and later) bundle a `cuda_v12` runner built with CUDA Toolkit 12.8, whose fatbinary includes `sm_90a` and `sm_120` kernel images. Debian bookworm's stock `nvidia-driver` is the 535 branch (max CUDA 12.2) and aborts at first dispatch with `CUDA error: device kernel image is invalid`. NeuralDrive therefore sources the NVIDIA driver from NVIDIA's own CUDA repo and pins it to the 570 branch — see [Archive Sources](../build/archive-sources.md) for details.
+
 ## Service Configuration
 
 The `neuraldrive-ollama.service` manages the lifecycle of the inference engine.
@@ -20,7 +24,7 @@ The `neuraldrive-ollama.service` manages the lifecycle of the inference engine.
   - `MemoryHigh=90%`: Triggers aggressive swapping/GC when system memory is nearly full.
   - `MemoryMax=95%`: The hard limit before the OOM killer intervenes.
 - **GPU Initialization**: The unit includes `ExecStartPre` commands to ensure CUDA is ready:
-  - `ExecStartPre=-/sbin/modprobe nvidia-current-uvm`: Loads the CUDA Unified Video Memory module (named `nvidia-current-uvm` in the Debian package).
+  - `ExecStartPre=-/sbin/modprobe nvidia-uvm`: Loads the CUDA Unified Video Memory module.
   - `ExecStartPre=-/usr/bin/nvidia-modprobe -u`: Creates the `/dev/nvidia-uvm` and `/dev/nvidia-uvm-tools` device nodes.
 
 ### Persistent Config Overrides

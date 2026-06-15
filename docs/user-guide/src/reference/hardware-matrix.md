@@ -8,10 +8,10 @@ This document provides a comprehensive list of supported GPU hardware and their 
 
 | Vendor | Family | Example Cards | Compute Stack | Driver | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **NVIDIA** | Turing | RTX 2060-2080, T4 | CUDA 12.x | 535+ | Supported |
-| **NVIDIA** | Ampere | RTX 3060-3090, A100, A2000 | CUDA 12.x | 535+ | Supported |
-| **NVIDIA** | Ada Lovelace | RTX 4060-4090, L40 | CUDA 12.x | 535+ | Supported |
-| **NVIDIA** | Hopper | H100 | CUDA 12.x | 535+ | Supported |
+| **NVIDIA** | Turing | RTX 2060-2080, T4 | CUDA 12.x | 570 | Supported |
+| **NVIDIA** | Ampere | RTX 3060-3090, A100, A2000 | CUDA 12.x | 570 | Supported |
+| **NVIDIA** | Ada Lovelace | RTX 4060-4090, L40 | CUDA 12.x | 570 | Supported |
+| **NVIDIA** | Hopper | H100 | CUDA 12.x | 570 | Supported |
 | **AMD** | RDNA 3 | RX 7600-7900 XTX | ROCm 6.x | amdgpu | Supported |
 | **AMD** | CDNA 2/3 | MI250, MI300 | ROCm 6.x | amdgpu | Supported |
 | **Intel** | Arc Alchemist | A770, A750 | oneAPI/SYCL | i915 | Experimental |

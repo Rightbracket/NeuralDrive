@@ -1,12 +1,19 @@
 # NVIDIA GPU Support — Headless/Compute Only (no X11/GLX)
-# Debian bookworm has no nvidia-headless metapackage (Ubuntu-only).
-# These packages provide compute support without pulling X11/Xorg/GLX deps.
+#
+# Driver branch is sourced from NVIDIA's official CUDA repo (see
+# config/archives/nvidia-cuda.*) and pinned to 570.133.20-1, the last 570.x
+# build whose nvidia-kernel-dkms is satisfied by Debian bookworm's dkms 3.0.10.
+# Driver 570 is required: Debian's 535.x cannot load Ollama 0.30.x's CUDA 12.8
+# kernel images and fails with "CUDA error: device kernel image is invalid".
+#
+# nvidia-driver-cuda is NVIDIA's headless CUDA-only package — explicitly
+# "does not require a display or graphical output". It bundles nvidia-smi
+# (Debian's split nvidia-smi/nvidia-driver-bin packages don't exist upstream).
 # nvidia-cuda-toolkit is NOT needed — Ollama bundles its own CUDA runtime.
 dkms
 linux-headers-amd64
 nvidia-kernel-dkms
-nvidia-driver-bin
-nvidia-smi
+nvidia-driver-cuda
 nvidia-persistenced
 firmware-nvidia-gsp
 libcuda1

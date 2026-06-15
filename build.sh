@@ -68,6 +68,9 @@ lb config \
     --apt-recommends false \
     --linux-packages "linux-image" \
     --compression xz \
+    --debootstrap-options "--include=ca-certificates" \
+    --firmware-chroot false \
+    --firmware-binary false \
     --iso-volume "NeuralDrive" \
     --iso-application "NeuralDrive Inference Server" \
     --iso-publisher "NeuralDrive Project"

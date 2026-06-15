@@ -13,26 +13,34 @@ Each third-party archive requires two files:
 ## Currently Configured Archives
 
 ### Debian Backports
-Used to pull newer versions of certain packages (like the Linux kernel) while remaining on the Stable (Bookworm) base.
+Used to pull newer versions of certain packages (like the Linux kernel) while remaining on the Stable (Bookworm) base. Configured in `config/archives/backports.list.chroot`.
 
-### NVIDIA Repository
-Provides the latest proprietary drivers and CUDA toolkit directly from NVIDIA.
+### NVIDIA CUDA Repository
+Provides the proprietary NVIDIA driver. Required because Debian bookworm only carries the 535 branch (max CUDA 12.2), which cannot load the CUDA 12.8 kernel images shipped by current Ollama releases — the failure mode is `CUDA error: device kernel image is invalid`. Configured in `config/archives/nvidia-cuda.{list,key,pref}.chroot`.
 
-### ROCm (AMD)
-Provides the Radeon Open Compute stack. We pin this to specific versions to ensure compatibility with Ollama's build requirements.
-
-### Intel OneAPI
-Provides the necessary libraries for Intel Arc and Data Center GPUs.
+The pin file (`nvidia-cuda.pref.chroot`) locks the headless driver stack to **570.133.20-1**, the last 570.x build whose `nvidia-kernel-dkms` is satisfied by Debian bookworm's `dkms` (3.0.10). Versions from 570.148.08 onward require `dkms >= 3.1.8` and would fail to install. All non-driver packages from the NVIDIA repo are pinned at low priority so they cannot accidentally replace unrelated Debian packages.
 
 ## Repository Pinning
 
-To prevent third-party repositories from accidentally upgrading core Debian packages, we use APT pinning. This is configured in `config/archives/*.pref.chroot` files.
+Third-party repositories must not be allowed to upgrade core Debian packages by accident. APT pinning is configured per archive in `config/archives/*.pref.chroot`.
 
-Example pin for the NVIDIA repository:
+The NVIDIA pin uses three rules in `nvidia-cuda.pref.chroot`:
+
 ```text
+# Driver packages: from NVIDIA repo at highest priority
+Package: nvidia-* libnvidia-* libcuda* libcudadebugger* libnvcuvid* libnvoptix* firmware-nvidia-*
+Pin: origin "developer.download.nvidia.com"
+Pin-Priority: 1001
+
+# Lock the branch to 570.133.20 (dkms 3.0.10 compatibility)
+Package: nvidia-kernel-dkms nvidia-driver-cuda ...
+Pin: version 570.133.20*
+Pin-Priority: 1001
+
+# Everything else from the NVIDIA repo at low priority
 Package: *
-Pin: origin developer.download.nvidia.com
-Pin-Priority: 600
+Pin: origin "developer.download.nvidia.com"
+Pin-Priority: 100
 ```
 
 ## Adding a New Archive

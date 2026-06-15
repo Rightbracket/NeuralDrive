@@ -180,3 +180,19 @@ Both `firmware-amd-graphics` and `firmware-misc-nonfree` are **already explicitl
 - Iteration 5: All 5 size reduction strategies implemented. GLX alternatives hook failed (5020-update-glx-alternative). Fixed with 5019 pre-hook to remove glx-alternative packages.
 - Iteration 6: 5019 purge broke apt deps for hook 03. Fixed by replacing purge with stub alternative registration (mkdir + update-alternatives --install).
 - Iteration 7: ✅ BUILD SUCCEEDED. All hooks passed. ISO: 3.9GB (SHA256: f1970d205ebdb4b80e088fe6477f47069f64cbf3ce5f198428fec3f7fb976f99)
+
+---
+
+## Follow-up: NVIDIA driver bump (2026-06-14)
+
+Strategy 2 originally selected the Debian-shipped `nvidia-driver-bin` + `nvidia-smi` headless packages at the 535 branch. That worked for the Ollama releases current at the time but broke with Ollama 0.30.x (released May–June 2026): the new vendored llama.cpp `cuda_v12` runner is built with CUDA Toolkit 12.8 and includes `sm_90a`/`sm_120` kernel images, so driver 535 (max CUDA 12.2) aborts every model load with `CUDA error: device kernel image is invalid`.
+
+**Fix**: source the driver from NVIDIA's official CUDA repo (`developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64`) and pin to **570.133.20-1** — the last 570.x release whose `nvidia-kernel-dkms` is satisfied by Debian bookworm's `dkms 3.0.10` (570.148.08+ requires `dkms >= 3.1.8`, which is not in bookworm).
+
+**Package-list changes** in `config/package-lists/gpu-nvidia.list.chroot`:
+- Removed `nvidia-driver-bin` and `nvidia-smi` (Debian-only split packages — do not exist in NVIDIA's repo).
+- Added `nvidia-driver-cuda` (NVIDIA's headless CUDA-only metapackage; bundles `nvidia-smi`, NVML, OpenCL ICD, encode/decode libs).
+
+**Archive added**: `config/archives/nvidia-cuda.{list,key,pref}.chroot`. Pin file uses priority 1001 for the driver stack, version 570.133.20* lock, and priority 100 catch-all so the NVIDIA repo cannot replace unrelated Debian packages.
+
+**Size impact**: driver stack grows ~50–100 MiB (xz-compressed in squashfs) due to the larger 570.x firmware/libs vs. 535.x. Acceptable trade-off given that the previous build shipped a non-functional GPU path on current Ollama.

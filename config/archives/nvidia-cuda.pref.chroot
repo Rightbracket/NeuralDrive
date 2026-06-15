@@ -1,0 +1,39 @@
+# Pin NVIDIA's CUDA repo so it supplies the GPU driver stack instead of Debian's.
+#
+# Debian bookworm's nvidia-driver tops out at the 535 branch (max CUDA 12.2),
+# which is too old for Ollama 0.30.x's bundled llama.cpp cuda_v12 runner — it
+# was compiled with CUDA Toolkit 12.8 and includes sm_90a/sm_120 kernel images
+# that driver 535 cannot load (CUDA error: device kernel image is invalid).
+#
+# Driver branch 570 supports CUDA 12.8 and runs everything Ollama 0.30.x ships.
+# We pin specifically to 570.133.20-1 because 570.148.08+ requires dkms >= 3.1.8
+# (bookworm ships dkms 3.0.10, which only satisfies versions up to 570.133.20).
+
+# (1) Lock the driver stack to the exact 570.133.20-1 build. Pin: version with an
+#     exact version string (no glob) is the most reliable syntax in bookworm's apt.
+#     Priority 1001 (>1000) is required to allow downgrades from any version apt
+#     might otherwise prefer.
+Package: nvidia-kernel-dkms nvidia-driver-cuda nvidia-kernel-support nvidia-persistenced nvidia-modprobe libcuda1 libnvidia-ml1 libnvidia-cfg1 libnvidia-ptxjitcompiler1 libnvidia-pkcs11-openssl3 libcudadebugger1 libnvcuvid1 libnvidia-fbc1 libnvoptix1 libnvidia-encode1 libnvidia-opticalflow1 libnvidia-sandboxutils libnvidia-nvvm4 nvidia-opencl-icd firmware-nvidia-gsp
+Pin: version 570.133.20-1
+Pin-Priority: 1001
+
+# (2) Block Debian's `nvidia-kernel-common` package outright. NVIDIA's
+#     `nvidia-kernel-support` (above) Provides nvidia-kernel-common virtually
+#     and Conflicts with the real package; without this rule apt may try to
+#     install both and fail with an unsatisfiable conflict.
+Package: nvidia-kernel-common
+Pin: release o=Debian
+Pin-Priority: -1
+
+# (3) For any other nvidia/cuda packages not listed above, still prefer NVIDIA's
+#     repo over Debian's so we don't accidentally get a 535-branch sub-library
+#     mixed in with our 570 stack.
+Package: nvidia-* libnvidia-* libcuda* libcudadebugger* libnvcuvid* libnvoptix* firmware-nvidia-*
+Pin: release o=NVIDIA, l=NVIDIA CUDA
+Pin-Priority: 990
+
+# (4) Everything else from the NVIDIA repo (e.g. cuda-toolkit, cuda-compat) stays
+#     at very low priority so it cannot replace unrelated Debian packages.
+Package: *
+Pin: release o=NVIDIA, l=NVIDIA CUDA
+Pin-Priority: 100

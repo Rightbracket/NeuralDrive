@@ -16,11 +16,16 @@ This list contains the essential packages for the appliance:
 
 To support different hardware configurations, we use specialized package lists:
 
-### NVIDIA (`nvidia.list.chroot`)
-- `nvidia-driver`: The core proprietary driver.
-- `nvidia-smi`: System management interface for monitoring.
-- `nvidia-cuda-toolkit`: Required for compute tasks.
-- `libnvidia-encode1`: For video encoding/decoding if needed by secondary apps.
+### NVIDIA (`gpu-nvidia.list.chroot`)
+
+Headless CUDA-only install, sourced from NVIDIA's CUDA repo (see [Archive Sources](archive-sources.md)) and pinned to driver 570.133.20-1:
+
+- `nvidia-kernel-dkms`: Kernel module source built via DKMS at install time.
+- `nvidia-driver-cuda`: NVIDIA's headless CUDA package — bundles `nvidia-smi`, OpenCL ICD, NVML, encode/decode libs, and is explicitly "does not require a display or graphical output". This replaces Debian's split `nvidia-driver-bin` + `nvidia-smi` packages, which do not exist in NVIDIA's upstream repo.
+- `libcuda1`, `libnvidia-ml1`, `nvidia-modprobe`, `nvidia-persistenced`, `firmware-nvidia-gsp`: explicit deps to ensure they're pulled from the NVIDIA repo at the pinned version.
+- `dkms`, `linux-headers-amd64`: required to build the kernel module.
+
+`nvidia-cuda-toolkit` is **not** installed — Ollama bundles its own CUDA runtime.
 
 ### AMD (ROCm)
 Packages for ROCm support are typically pulled from the official Radeon repositories defined in the `archives/` directory. These include `rocm-hip-sdk` and `amdgpu-dkms`.

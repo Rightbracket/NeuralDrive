@@ -38,10 +38,10 @@ If Ollama reports CPU-only inference despite having an NVIDIA GPU, the `nvidia-u
     ```bash
     lsmod | grep nvidia_uvm
     ```
-2.  **Naming Convention**: On NeuralDrive (based on Debian), the module is named `nvidia-current-uvm`.
+2.  **Naming Convention**: The module file is named `nvidia-uvm` (matching NVIDIA's upstream packaging).
 3.  **Manual Load**: If missing, load it manually:
     ```bash
-    sudo modprobe nvidia-current-uvm && nvidia-modprobe -u
+    sudo modprobe nvidia-uvm && nvidia-modprobe -u
     ```
 4.  **Automatic Loading**: NeuralDrive should load this automatically at boot via `/etc/modules-load.d/nvidia-uvm.conf`. If it fails, check the `journalctl -u neuraldrive-ollama` logs for `ExecStartPre` failures.
 
