@@ -9,7 +9,7 @@ DETECTED_VENDORS=""
 if echo "$GPU_LIST" | grep -qi "10de"; then
     echo "VENDOR=NVIDIA" >> "$GPU_CONF"
     DETECTED_VENDORS="NVIDIA $DETECTED_VENDORS"
-    modprobe nvidia nvidia-uvm nvidia-drm 2>/dev/null || echo "NVIDIA_MODULE_MISSING=true" >> "$GPU_CONF"
+    modprobe nvidia nvidia-uvm 2>/dev/null || echo "NVIDIA_MODULE_MISSING=true" >> "$GPU_CONF"
     nvidia-smi -pm 1 2>/dev/null || true
 fi
 
