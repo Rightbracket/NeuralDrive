@@ -14,9 +14,24 @@ from utils import config
 SENTINEL = "/etc/neuraldrive/first-boot-complete"
 CREDENTIALS_PATH = "/etc/neuraldrive/credentials.conf"
 API_KEY_PATH = "/etc/neuraldrive/api.key"
+# Caddy reads the API key from this env file via systemd EnvironmentFile.
+# The wizard must rewrite it (and reload Caddy) whenever it generates a new key,
+# otherwise Caddy keeps enforcing the baked-in placeholder
+# (`NEURALDRIVE_API_KEY=changeme-during-first-boot`) and the wizard-displayed key
+# fails to authenticate.
+CADDY_ENV_PATH = "/etc/neuraldrive/caddy.env"
 PERSISTENT_CREDENTIALS_PATH = "/var/lib/neuraldrive/config/credentials.conf"
 PERSISTENT_API_KEY_PATH = "/var/lib/neuraldrive/config/api.key"
 SUDOERS_PATH = "/etc/sudoers.d/neuraldrive-admin"
+# State directory where the wizard stashes admin-customized /etc files that
+# live OUTSIDE union persistence entries (notably /etc/shadow's
+# neuraldrive-admin line and /etc/sudoers.d/neuraldrive-admin). The
+# `neuraldrive-restore-system.service` oneshot replays these into /etc/ on
+# every boot. This directory itself IS in a union entry, so the stash
+# survives reboots.
+SYSTEM_STATE_DIR = "/var/lib/neuraldrive/system"
+SHADOW_STASH_PATH = f"{SYSTEM_STATE_DIR}/neuraldrive-admin.shadow"
+SUDOERS_STASH_PATH = f"{SYSTEM_STATE_DIR}/sudoers.d-neuraldrive-admin"
 # persistence.conf lists directories that live-boot mounts as overlayfs on
 # subsequent boots, with `<partition>/<entry-path>/rw` as the upperdir and
 # `…/work` as the workdir. Anything we pre-seed MUST go inside the matching
@@ -582,6 +597,82 @@ class FirstBootWizard(Screen):
         except (subprocess.TimeoutExpired, FileNotFoundError) as e:
             return f"Failed to write {path}: {e}"
 
+    def _stash_system_files(self) -> str | None:
+        """Stash admin-customized /etc files into /var/lib/neuraldrive/system/.
+
+        Files that live outside our `union` persistence entries (notably
+        /etc/shadow's neuraldrive-admin line and /etc/sudoers.d/neuraldrive-admin)
+        would otherwise revert to the squashfs-baked default on every reboot.
+        The companion `neuraldrive-restore-system.service` oneshot copies them
+        back into /etc/ early in the next boot.
+
+        Returns None on success, error message on failure.
+        """
+        proc = subprocess.run(
+            ["sudo", "mkdir", "-p", SYSTEM_STATE_DIR],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if proc.returncode != 0:
+            return f"mkdir {SYSTEM_STATE_DIR} failed: {proc.stderr.strip()}"
+
+        # Extract the neuraldrive-admin line from /etc/shadow.
+        proc = subprocess.run(
+            ["sudo", "grep", "^neuraldrive-admin:", "/etc/shadow"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if proc.returncode != 0 or not proc.stdout.strip():
+            return "could not read neuraldrive-admin entry from /etc/shadow"
+        err = self._sudo_write(SHADOW_STASH_PATH, proc.stdout, "0640")
+        if err:
+            return err
+
+        # Stash the sudoers file (whole-file; we own it entirely).
+        if os.path.exists(SUDOERS_PATH):
+            proc = subprocess.run(
+                ["sudo", "cp", "-a", SUDOERS_PATH, SUDOERS_STASH_PATH],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if proc.returncode != 0:
+                return f"cp {SUDOERS_PATH} -> {SUDOERS_STASH_PATH} failed: {proc.stderr.strip()}"
+
+        return None
+
+    def _write_caddy_env_and_reload(self, api_key: str) -> str | None:
+        """Update /etc/neuraldrive/caddy.env with the new API key and reload Caddy.
+
+        Caddy's Caddyfile references {env.NEURALDRIVE_API_KEY} for bearer-token
+        auth on /v1/* and /api/*. The env var comes from this file via systemd's
+        EnvironmentFile=. Without updating the file (and reloading Caddy so
+        systemd re-reads it) Caddy keeps enforcing the placeholder value baked
+        into the squashfs, and the wizard-displayed API key fails to
+        authenticate. Same pattern the system-api /system/api-keys/rotate
+        endpoint uses.
+
+        Returns None on success, error message on failure.
+        """
+        err = self._sudo_write(
+            CADDY_ENV_PATH, f"NEURALDRIVE_API_KEY={api_key}\n", "0640"
+        )
+        if err:
+            return err
+        # `systemctl restart` (not reload) — reload re-evaluates Caddyfile but
+        # the systemd EnvironmentFile is only read on (re)start.
+        proc = subprocess.run(
+            ["sudo", "systemctl", "restart", "neuraldrive-caddy"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if proc.returncode != 0:
+            return f"caddy restart failed: {proc.stderr.strip()}"
+        return None
+
     def _persistence_root(self) -> str | None:
         """Return the mountpoint where the persistence partition is reachable.
 
@@ -683,6 +774,15 @@ class FirstBootWizard(Screen):
             if err:
                 errors.append(err)
 
+            # Update Caddy's EnvironmentFile and reload, so the new bearer
+            # token takes effect immediately on this boot (and on next boot,
+            # since /etc/neuraldrive is in union persistence — see
+            # PERSISTENCE_UNION_ENTRIES). Without this, Caddy keeps enforcing
+            # the squashfs-baked placeholder string.
+            err = self._write_caddy_env_and_reload(self._generated_api_key)
+            if err:
+                errors.append(err)
+
             persist_dir = os.path.dirname(PERSISTENT_API_KEY_PATH)
             if os.path.isdir(persist_dir):
                 err = self._sudo_write(PERSISTENT_API_KEY_PATH, key_content, "0600")
@@ -730,6 +830,7 @@ class FirstBootWizard(Screen):
                 SENTINEL,
                 API_KEY_PATH,
                 CREDENTIALS_PATH,
+                CADDY_ENV_PATH,
                 "/etc/neuraldrive/config.yaml",
                 PERSISTENT_API_KEY_PATH,
                 PERSISTENT_CREDENTIALS_PATH,
@@ -760,15 +861,45 @@ class FirstBootWizard(Screen):
                 if result.returncode == 0 and "NOPASSWD:" in result.stdout:
                     new_content = result.stdout.replace("NOPASSWD:", "")
                     err = self._sudo_write(SUDOERS_PATH, new_content, "0440")
+                    # Note: sudoers.d/neuraldrive-admin is NOT in a union
+                    # persistence entry, so we cannot mirror it directly into
+                    # the persistence upperdir. Instead, _stash_system_files
+                    # (below) stashes it to /var/lib/neuraldrive/system/, and
+                    # neuraldrive-restore-system.service replays it on every
+                    # boot. Sudoers strip failures here are non-fatal —
+                    # sentinel+config are already written and the wizard is
+                    # functionally complete.
                     if err:
-                        # Sudoers strip failed but sentinel+config are written —
-                        # wizard is complete, just warn
                         pass
-                    elif self._fresh_persistence:
-                        # Mirror the updated sudoers too.
-                        self._mirror_to_persistence_upper(SUDOERS_PATH)
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 pass
+
+        # Stash /etc files that live OUTSIDE union persistence entries so the
+        # neuraldrive-restore-system.service can replay them on every boot.
+        # Must run AFTER chpasswd (above) and AFTER the NOPASSWD strip (just
+        # above) so we capture the final state. The stash directory itself
+        # lives in /var/lib/neuraldrive/system, which IS in a union entry, so
+        # the stash survives reboots.
+        if self._admin_password:
+            err = self._stash_system_files()
+            if err:
+                # Non-fatal: surface a warning but don't roll back the wizard.
+                # The password is set in /etc/shadow on this boot; the user
+                # will hit the loss-on-reboot bug but can manually `passwd`
+                # again from the TUI/console.
+                error_widget = self.query_one("#wiz-error", Static)
+                error_widget.update(
+                    f"Warning: could not stash system files: {err}\n"
+                    "Your password will be lost on reboot. "
+                    "Run the wizard again or `sudo passwd` from the console."
+                )
+            elif self._fresh_persistence:
+                # Mirror the freshly-stashed system files into the
+                # persistence upperdir so the restore service finds them
+                # after the forced reboot.
+                for p in (SHADOW_STASH_PATH, SUDOERS_STASH_PATH):
+                    if os.path.exists(p):
+                        self._mirror_to_persistence_upper(p)
 
         # All mirroring done — release the staging mount of the persistence
         # partition. live-boot will mount it the proper way (with overlays) on

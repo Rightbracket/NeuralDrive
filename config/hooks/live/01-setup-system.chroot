@@ -50,5 +50,6 @@ systemctl enable neuraldrive-system-api.service
 systemctl enable neuraldrive-zram.service
 systemctl enable neuraldrive-storage-monitor.service
 systemctl enable neuraldrive-show-ip.service
+systemctl enable neuraldrive-restore-system.service
 systemctl enable nftables.service
 systemctl enable avahi-daemon.service

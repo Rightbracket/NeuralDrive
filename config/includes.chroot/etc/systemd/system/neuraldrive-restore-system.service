@@ -1,0 +1,17 @@
+[Unit]
+Description=NeuralDrive Restore Admin-Customized /etc Files
+# Run early — before any service that authenticates users (sshd, getty,
+# TUI autologin) so they see the restored /etc/shadow and sudoers.
+DefaultDependencies=no
+After=local-fs.target
+Before=sysinit.target shutdown.target
+Conflicts=shutdown.target
+ConditionPathExists=/var/lib/neuraldrive/system
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/neuraldrive/restore-system-files.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
