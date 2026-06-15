@@ -40,9 +40,11 @@ CURATED_MODELS = [
         [
             ("gemma3:12b",                  "8.1 GB", "Multimodal, 128K context"),
             ("phi4:14b",                    "9.1 GB", "Microsoft math/STEM specialist"),
+            ("phi4-reasoning:14b",          "11 GB",  "Reasoning variant — beats 70B distills on logic"),
             ("deepseek-coder-v2:16b",       "8.9 GB", "MoE coding model"),
-            ("deepseek-r1:14b",             "9.0 GB", "Mid-range reasoning"),
+            ("deepseek-r1:14b",             "9.0 GB", "Mid-range chain-of-thought reasoning"),
             ("qwen2.5-coder:14b",           "9.0 GB", "Strong mid-range coding"),
+            ("mistral-nemo:12b",            "7.1 GB", "Mistral long-context (1M tokens) for RAG"),
         ],
     ),
     (
@@ -60,6 +62,7 @@ CURATED_MODELS = [
         "40 GB+ VRAM",
         [
             ("llama3.3:70b",                       "43 GB", "Meta flagship — RAG workhorse, 128K context"),
+            ("llama4:scout",                       "67 GB", "Meta MoE — 10M token context for repo-scale work"),
             ("deepseek-r1:70b",                    "43 GB", "Top-tier reasoning, exceeds GPT-4o on benchmarks"),
             ("qwen2.5-coder:32b-instruct-q8_0",    "35 GB", "Coding king at higher precision"),
         ],
