@@ -50,6 +50,11 @@ class FirstBootWizard(Screen):
         # else, because writes are still landing in the ephemeral overlay (the
         # union mounts only activate on the next boot).
         self._fresh_persistence = False
+        # Mountpoint of the freshly-created persistence partition. Kept mounted
+        # across _create_persistence_partition → _finalize so that finalize can
+        # mirror wizard-written state into the per-entry rw/ upperdirs. Cleared
+        # (and partition unmounted) only at the very end of _finalize.
+        self._persistence_staging_mount: str | None = None
         self._awaiting_confirm = False
 
     def compose(self) -> ComposeResult:
@@ -497,22 +502,18 @@ class FirstBootWizard(Screen):
             if proc.returncode != 0:
                 return f"chown webui failed: {proc.stderr.strip()}"
 
-            proc = subprocess.run(
-                ["sudo", "umount", "/mnt/persistence"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            if proc.returncode != 0:
-                return f"umount /mnt/persistence failed: {proc.stderr.strip()}"
-
+            # Leave the partition mounted at /mnt/persistence so _finalize() can
+            # mirror wizard-written state (sentinel, api key, config, etc.) into
+            # the per-entry rw/ upperdirs. _finalize will unmount when done.
+            #
             # We intentionally do NOT direct-mount the partition at
             # /var/lib/neuraldrive here. The `union` entries in persistence.conf
             # only activate on the next boot (via live-boot's initrd). Mounting
-            # the partition directly now would land ollama writes at the
-            # partition root, which would be invisible once the overlay
-            # activates on reboot — exactly the bug this rewrite fixes.
-            # The wizard's _finalize() will force a reboot before exit.
+            # the partition directly would land ollama writes at the partition
+            # root, which would be invisible once the overlay activates on
+            # reboot — exactly the bug this rewrite fixes. The wizard's
+            # _finalize() will force a reboot before exit.
+            self._persistence_staging_mount = "/mnt/persistence"
             self._has_persistence = True
             self._fresh_persistence = True
             return None
@@ -582,13 +583,24 @@ class FirstBootWizard(Screen):
             return f"Failed to write {path}: {e}"
 
     def _persistence_root(self) -> str | None:
-        """Return live-boot's mountpoint for the persistence partition, or None.
+        """Return the mountpoint where the persistence partition is reachable.
 
-        live-boot mounts the persistence partition at /run/live/persistence/<dev>/
-        on boot. We use this path to pre-seed files into the union overlays'
-        rw/ upperdirs when persistence was just created in this session — those
-        writes need to survive into the next boot when the overlays activate.
+        Two cases are valid:
+
+        * **First-boot wizard run** (the persistence partition was just created
+          this session): live-boot did not mount it at boot; the wizard left
+          it mounted at /mnt/persistence (self._persistence_staging_mount).
+        * **Subsequent wizard runs / re-runs**: live-boot mounts the partition
+          at /run/live/persistence/<dev>/ during the initrd phase. We scan
+          /proc/mounts for that prefix.
+
+        Returns None when neither path is available — the wizard then cannot
+        mirror state and surfaces an error before the user reboots.
         """
+        if self._persistence_staging_mount and os.path.ismount(
+            self._persistence_staging_mount
+        ):
+            return self._persistence_staging_mount
         try:
             with open("/proc/mounts") as f:
                 for line in f:
@@ -757,6 +769,21 @@ class FirstBootWizard(Screen):
                         self._mirror_to_persistence_upper(SUDOERS_PATH)
             except (subprocess.TimeoutExpired, FileNotFoundError):
                 pass
+
+        # All mirroring done — release the staging mount of the persistence
+        # partition. live-boot will mount it the proper way (with overlays) on
+        # the next boot. Failure here is non-fatal: the kernel releases it on
+        # reboot anyway.
+        if self._persistence_staging_mount:
+            try:
+                subprocess.run(
+                    ["sudo", "umount", self._persistence_staging_mount],
+                    capture_output=True,
+                    timeout=10,
+                )
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                pass
+            self._persistence_staging_mount = None
 
         self.app.pop_screen()
 

@@ -19,3 +19,5 @@ config/hooks/normal/
 config/package-lists/live.list.chroot
 .sisyphus
 artifacts/
+*.log
+build-logs/
